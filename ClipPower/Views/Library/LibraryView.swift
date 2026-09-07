@@ -4,10 +4,12 @@ struct LibraryView: View {
     @StateObject private var libraryViewModel: LibraryViewModel
     @StateObject private var trashViewModel: TrashViewModel
     @StateObject private var importExportViewModel: ImportExportViewModel
+    @StateObject private var settingsViewModel: SettingsViewModel
 
     private enum SidebarItem: Hashable {
         case all
         case trash
+        case settings
     }
 
     /// 用 `.sheet(item:)` 而不是 `.sheet(isPresented:)` + 单独的 `editingSnippet`，
@@ -31,7 +33,7 @@ struct LibraryView: View {
     @State private var editorTarget: EditorTarget?
     @State private var isShowingImportExport = false
 
-    init(store: SnippetStore) {
+    init(store: SnippetStore, clipboardHistoryStore: ClipboardHistoryStore) {
         let library = LibraryViewModel(store: store)
         _libraryViewModel = StateObject(wrappedValue: library)
         _trashViewModel = StateObject(wrappedValue: TrashViewModel(store: store, onChange: { [weak library] in
@@ -40,6 +42,7 @@ struct LibraryView: View {
         _importExportViewModel = StateObject(wrappedValue: ImportExportViewModel(store: store, onImported: { [weak library] in
             library?.reload()
         }))
+        _settingsViewModel = StateObject(wrappedValue: SettingsViewModel(clipboardStore: clipboardHistoryStore))
     }
 
     var body: some View {
@@ -47,12 +50,15 @@ struct LibraryView: View {
             List(selection: $sidebarSelection) {
                 Label("全部片段", systemImage: "doc.on.clipboard").tag(SidebarItem.all)
                 Label("回收站", systemImage: "trash").tag(SidebarItem.trash)
+                Label("设置", systemImage: "gearshape").tag(SidebarItem.settings)
             }
             .navigationSplitViewColumnWidth(min: 140, ideal: 160)
         } content: {
             switch sidebarSelection {
             case .trash:
                 TrashView(viewModel: trashViewModel)
+            case .settings:
+                SettingsView(viewModel: settingsViewModel)
             default:
                 SnippetListView(
                     snippets: libraryViewModel.snippets,
@@ -62,8 +68,8 @@ struct LibraryView: View {
             }
         } detail: {
             switch sidebarSelection {
-            case .trash:
-                emptyDetailPlaceholder
+            case .trash, .settings:
+                Color.clear
             default:
                 if let id = listSelection, let snippet = libraryViewModel.snippets.first(where: { $0.id == id }) {
                     SnippetDetailView(
@@ -83,11 +89,13 @@ struct LibraryView: View {
             }
         }
         .toolbar {
-            ToolbarItem {
-                Button {
-                    isShowingImportExport = true
-                } label: {
-                    Label("导入/导出", systemImage: "square.and.arrow.up.on.square")
+            if sidebarSelection != .settings {
+                ToolbarItem {
+                    Button {
+                        isShowingImportExport = true
+                    } label: {
+                        Label("导入/导出", systemImage: "square.and.arrow.up.on.square")
+                    }
                 }
             }
             if sidebarSelection == nil || sidebarSelection == .all {

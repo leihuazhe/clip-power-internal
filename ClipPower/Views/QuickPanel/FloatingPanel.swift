@@ -10,6 +10,7 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
     var onMoveDown: (() -> Void)?
     var onMoveUp: (() -> Void)?
     var onEscape: (() -> Void)?
+    var onTabKey: (() -> Void)?
 
     private var keyMonitor: Any?
 
@@ -76,6 +77,9 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
                 return nil
             case 53: // Esc
                 self.onEscape?()
+                return nil
+            case 48: // Tab
+                self.onTabKey?()
                 return nil
             default:
                 return event

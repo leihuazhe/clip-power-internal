@@ -19,8 +19,10 @@ final class ClipboardHistoryStore: Sendable {
         guard !content.isEmpty else { return false }
 
         return try dbQueue.write { db in
+            // 用 rowid 做次级排序键：createdAt 精度不足以区分同一毫秒内的多次写入
+            // （测试里连续 record() 几乎总是撞到这个问题），rowid 能保证反映真实插入顺序。
             if let mostRecent = try ClipboardHistoryItem
-                .order(Column("createdAt").desc)
+                .order(Column("createdAt").desc, Column("rowid").desc)
                 .fetchOne(db), mostRecent.content == content {
                 return false
             }
@@ -33,7 +35,7 @@ final class ClipboardHistoryStore: Sendable {
                 try db.execute(
                     sql: """
                         DELETE FROM clipboardHistoryItem WHERE id IN (
-                            SELECT id FROM clipboardHistoryItem ORDER BY createdAt ASC LIMIT ?
+                            SELECT id FROM clipboardHistoryItem ORDER BY createdAt ASC, rowid ASC LIMIT ?
                         )
                         """,
                     arguments: [overflow]
@@ -46,7 +48,7 @@ final class ClipboardHistoryStore: Sendable {
     func fetchRecent(limit: Int = 200) throws -> [ClipboardHistoryItem] {
         try dbQueue.read { db in
             try ClipboardHistoryItem
-                .order(Column("createdAt").desc)
+                .order(Column("createdAt").desc, Column("rowid").desc)
                 .limit(limit)
                 .fetchAll(db)
         }
@@ -64,7 +66,7 @@ final class ClipboardHistoryStore: Sendable {
         return try dbQueue.read { db in
             try ClipboardHistoryItem.fetchAll(
                 db,
-                sql: "SELECT * FROM clipboardHistoryItem WHERE content LIKE ? ESCAPE '\\' ORDER BY createdAt DESC",
+                sql: "SELECT * FROM clipboardHistoryItem WHERE content LIKE ? ESCAPE '\\' ORDER BY createdAt DESC, rowid DESC",
                 arguments: [pattern]
             )
         }

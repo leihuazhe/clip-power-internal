@@ -188,3 +188,41 @@ M5（视觉打磨，调用 `design-consultation` skill 产出正式视觉规范�
 - `SnippetStore.fetchActive()` / `search()` 不再按 `visibility` 过滤，隐藏条目的**标题/关键词/标签**可以被搜到，但**内容**搜不到——因为加密隐藏条目的 `plainContent` 本就是 `NULL`，这个安全边界与是否按 visibility 过滤无关。
 - 删除了独立的「隐藏片段」侧栏（`HiddenViewModel`/`HiddenListView`/`HiddenDetailView`），改为 `SnippetListView`/`SnippetDetailView` 直接按 `visibility` 分支渲染打码/解锁逻辑，`LibraryViewModel` 新增 `reveal`/`unhideSoft`/`unhideEncrypted` 方法。
 - 全局热键浮层（`QuickPanelViewModel`）的搜索结果同样包含隐藏条目，行内打码显示；选中加密隐藏条目会先触发一次 Touch ID / 密码鉴权再粘贴，浮层底部会显示「验证中...」状态，避免用户以为没反应。
+
+---
+
+## M4.5：剪贴板历史 + 独立可配置热键 + 设置面板
+
+对齐 Raycast 的另一个常用功能——除了 Snippets，还有一个「剪贴板历史」浮层，两者是完全独立的能力：
+
+- **数据层**：新增 `clipboardHistoryItem` 表（`ClipboardHistoryItem` / `ClipboardHistoryStore`），字段只有 `id/content/createdAt`，不做加密/隐藏（剪贴板历史本来就是系统剪贴板的原始记录，隐藏是 Snippets 的特性）。上限 200 条，超出自动清理最旧的；连续重复内容（比如自己粘贴 snippet 又被监控抓回来）会被跳过，不产生重复记录。排序统一加了 `rowid` 做次级排序键——纯粹是因为自动化测试连续 `record()` 时 `createdAt` 精度不够会撞到同一毫秒，真实使用中基本不会碰到，但测试踩了这个坑就顺手修了。
+- **采集方式**：`ClipboardMonitor` 轮询 `NSPasteboard.general.changeCount`（0.5s 一次）——macOS 没有剪贴板变化的推送通知 API，Raycast/Alfred 等剪贴板管理器也都是轮询实现的。
+- **浮层复用**：把 `QuickPanelController` 的窗口行为（`.nonactivatingPanel` 配置、方向键/Esc 的本地事件监听、失焦自动关闭）抽成了一个共享基类 `FloatingPanel`，Snippets 面板和剪贴板历史面板都是它的薄封装，只需要提供各自的 SwiftUI 内容视图和上下键回调。
+- **失焦自动关闭**（用户反馈后补的）：`FloatingPanel` 实现了 `NSWindowDelegate.windowDidResignKey`，浮层只要失去键盘焦点（点了别的窗口/别的 App）就自动收起，不需要非得再按一次热键或 Esc。
+- **独立可配置热键**：`GlobalHotkeyManager` 现在管理两个 `KeyboardShortcuts.Name`——`toggleSnippetsPanel`（默认 ⌥+Space，不变）和 `toggleClipboardHistoryPanel`（默认 ⌘⇧V）。两个热键互斥：呼出一个会自动收起另一个。
+- **设置面板**：菜单栏新增「设置...」，`SettingsWindowController`（AppKit 管理生命周期，和 `LibraryWindowController` 同样的套路）打开一个独立窗口，列出两个热键的 `KeyboardShortcuts.Recorder`（可以随意改绑，比如改成 ⌘1）+ 剪贴板历史条数统计 + 一键清空。
+
+### 一个值得记录的调试方法论
+
+这一轮开发里连着修了两个"看起来诡异"的 bug（编辑表单显示空白、方向键选中第二项回车却粘贴了第一项），都不是靠读代码猜出来的，是靠**在终端直接跑 App 可执行文件 + 临时加 `print` 调试日志 + 让用户实际操作复现**，日志一出来根因立刻就清楚了（比如 `searchText` 重复赋值触发 `reload()` 把 `selectedIndex` 冲掉）。之后这个项目的调试都统一走这条路，不再用 `open App.app`（那样看不到 stdout）。
+
+### 设置搬进管理窗口（用户反馈后调整）
+
+设置最初是菜单栏里一个独立的小窗口（`SettingsWindowController`），用户反馈应该挪到管理窗口下面，作为侧栏的一个栏目，且视觉要更现代化。改动：删除 `SettingsWindowController`，`SettingsView` 变成 `LibraryView` 侧栏的第三个 `SidebarItem`（齿轮图标），菜单栏的「设置...」入口也去掉了（统一走管理窗口）。视觉上换成了 macOS 原生的 `Form + Section + LabeledContent`、`.formStyle(.grouped)`，对齐系统设置那种分组卡片风格。
+
+---
+
+## M4.6：合并浮层 + Tab 切换 + 三个入口热键
+
+用户进一步反馈：Snippets 面板和剪贴板历史面板不应该是两个互斥的独立浮层，而应该是**同一个浮层里的两个 Tab**，用 Tab 键左右切换。同时明确了三个热键的语义：
+
+1. **ClipPower 打开快捷键**（新增，`toggleClipPowerPanel`，默认 ⌥+Space，沿用原来 Snippets 面板的默认值）——通用入口，按下后打开合并面板，**默认展示"片段"**这个 Tab。
+2. **片段快捷键**（`toggleSnippetsPanel`，默认不绑定，用户可在设置里自定义）——直接打开合并面板并定位到"片段" Tab。
+3. **剪贴板历史快捷键**（`toggleClipboardHistoryPanel`，默认 ⌘⇧V，不变）——直接打开合并面板并定位到"剪贴板历史" Tab。
+
+交互规则：
+- 面板已经打开时，按下另一个 Tab 对应的热键 → **切换到那个 Tab**（不关闭面板）；按下**当前已经激活的那个 Tab** 对应的热键 → 关闭面板（维持原来"再按一次关闭"的习惯）。
+- 面板内按 **Tab 键**在两个 Tab 之间左右切换（只有两个 Tab，Tab 键单纯是"切到另一个"，不用区分 Shift+Tab）。
+- 每个 Tab 各自保留自己的搜索框状态/选中项（`QuickPanelViewModel`/`ClipboardHistoryViewModel` 互不干扰），只是纳入了同一个窗口里显示；每次面板重新打开时两个 Tab 的搜索状态都会重置。
+
+实现上：新增 `ClipPowerPanelViewModel`（持有两个子 ViewModel + `activeTab` 状态 + 路由 `moveSelection`/`cycleTab`）、`ClipPowerPanelView`（顶部 Tab 条 + 下方切换显示 `QuickPanelView`/`ClipboardHistoryView` 的内容部分）、`ClipPowerPanelController`（`FloatingPanel` 的薄封装）。原来独立的 `QuickPanelController`/`ClipboardHistoryPanelController` 两个窗口控制器被这一个取代；`FloatingPanel` 基类新增了 `onTabKey` 回调（拦截 keyCode 48 也就是 Tab 键）。

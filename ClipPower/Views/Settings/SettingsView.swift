@@ -5,39 +5,36 @@ struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text("设置").font(.headline)
-
-            GroupBox("全局快捷键") {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("打开片段面板")
-                        Spacer()
-                        KeyboardShortcuts.Recorder(for: .toggleSnippetsPanel)
-                    }
-                    HStack {
-                        Text("打开剪贴板历史")
-                        Spacer()
-                        KeyboardShortcuts.Recorder(for: .toggleClipboardHistoryPanel)
-                    }
+        Form {
+            Section {
+                LabeledContent("打开 ClipPower") {
+                    KeyboardShortcuts.Recorder(for: .toggleClipPowerPanel)
                 }
-                .padding(8)
+                LabeledContent("直接打开「片段」") {
+                    KeyboardShortcuts.Recorder(for: .toggleSnippetsPanel)
+                }
+                LabeledContent("直接打开「剪贴板历史」") {
+                    KeyboardShortcuts.Recorder(for: .toggleClipboardHistoryPanel)
+                }
+            } header: {
+                Label("全局快捷键", systemImage: "keyboard")
+            } footer: {
+                Text("面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
-            GroupBox("剪贴板历史") {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("已记录 \(viewModel.clipboardHistoryCount) 条")
-                        .foregroundStyle(.secondary)
-                    Button("清空剪贴板历史", role: .destructive) {
-                        viewModel.clearClipboardHistory()
-                    }
+            Section {
+                LabeledContent("已记录条数", value: "\(viewModel.clipboardHistoryCount)")
+                Button("清空剪贴板历史", role: .destructive) {
+                    viewModel.clearClipboardHistory()
                 }
-                .padding(8)
+            } header: {
+                Label("剪贴板历史", systemImage: "doc.on.clipboard")
             }
-
-            Spacer()
         }
-        .padding(20)
-        .frame(width: 380, height: 300)
+        .formStyle(.grouped)
+        .frame(maxWidth: 520)
+        .onAppear { viewModel.reload() }
     }
 }

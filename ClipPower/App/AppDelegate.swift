@@ -4,22 +4,18 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private var libraryWindowController: LibraryWindowController?
-    private var settingsWindowController: SettingsWindowController?
 
-    private var snippetsPanelController: QuickPanelController?
-    private var snippetsPanelViewModel: QuickPanelViewModel?
-
-    private var clipboardHistoryPanelController: ClipboardHistoryPanelController?
-    private var clipboardHistoryViewModel: ClipboardHistoryViewModel?
+    private var panelController: ClipPowerPanelController?
+    private var panelViewModel: ClipPowerPanelViewModel?
     private var clipboardMonitor: ClipboardMonitor?
+    private var lastToggleAt: Date?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         _ = AppEnvironment.snippetStore // 触发数据库初始化与迁移
         try? AppEnvironment.snippetStore.purgeExpiredTrash()
 
         setupStatusItem()
-        setupSnippetsPanel()
-        setupClipboardHistory()
+        setupClipPowerPanel()
         openLibrary()
     }
 
@@ -33,14 +29,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let openItem = NSMenuItem(title: "打开管理窗口", action: #selector(openLibrary), keyEquivalent: "")
         openItem.target = self
 
-        let settingsItem = NSMenuItem(title: "设置...", action: #selector(openSettings), keyEquivalent: ",")
-        settingsItem.target = self
-
         let quitItem = NSMenuItem(title: "退出 Clip Power", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         let menu = NSMenu()
         menu.addItem(openItem)
-        menu.addItem(settingsItem)
         menu.addItem(.separator())
         menu.addItem(quitItem)
 
@@ -48,76 +40,73 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = item
     }
 
-    private func setupSnippetsPanel() {
-        let viewModel = QuickPanelViewModel(store: AppEnvironment.snippetStore)
-        let controller = QuickPanelController(viewModel: viewModel)
-
-        viewModel.onPaste = { [weak self, weak controller] text in
-            controller?.dismiss()
-            self?.performPasteAfterPanelCloses(text)
-        }
-        viewModel.onDismiss = { [weak controller] in
-            controller?.dismiss()
-        }
-        controller.onEscape = { [weak controller] in
-            controller?.dismiss()
-        }
-
-        snippetsPanelViewModel = viewModel
-        snippetsPanelController = controller
-
-        GlobalHotkeyManager.shared.register(.toggleSnippetsPanel) { [weak self] in
-            self?.toggleSnippetsPanel()
-        }
-    }
-
-    private func setupClipboardHistory() {
+    private func setupClipPowerPanel() {
         let monitor = ClipboardMonitor(store: AppEnvironment.clipboardHistoryStore)
         monitor.start()
         clipboardMonitor = monitor
 
-        let viewModel = ClipboardHistoryViewModel(store: AppEnvironment.clipboardHistoryStore)
-        let controller = ClipboardHistoryPanelController(viewModel: viewModel)
+        let snippetsViewModel = QuickPanelViewModel(store: AppEnvironment.snippetStore)
+        let clipboardHistoryViewModel = ClipboardHistoryViewModel(store: AppEnvironment.clipboardHistoryStore)
+        let viewModel = ClipPowerPanelViewModel(
+            snippetsViewModel: snippetsViewModel,
+            clipboardHistoryViewModel: clipboardHistoryViewModel
+        )
+        let controller = ClipPowerPanelController(viewModel: viewModel)
 
-        viewModel.onPaste = { [weak self, weak controller] text in
+        snippetsViewModel.onPaste = { [weak self, weak controller] text in
             controller?.dismiss()
             self?.performPasteAfterPanelCloses(text)
         }
-        viewModel.onDismiss = { [weak controller] in
+        snippetsViewModel.onDismiss = { [weak controller] in
+            controller?.dismiss()
+        }
+        clipboardHistoryViewModel.onPaste = { [weak self, weak controller] text in
+            controller?.dismiss()
+            self?.performPasteAfterPanelCloses(text)
+        }
+        clipboardHistoryViewModel.onDismiss = { [weak controller] in
             controller?.dismiss()
         }
         controller.onEscape = { [weak controller] in
             controller?.dismiss()
         }
 
-        clipboardHistoryViewModel = viewModel
-        clipboardHistoryPanelController = controller
+        panelViewModel = viewModel
+        panelController = controller
 
+        GlobalHotkeyManager.shared.register(.toggleClipPowerPanel) { [weak self] in
+            self?.togglePanel(defaultTab: .snippets)
+        }
+        GlobalHotkeyManager.shared.register(.toggleSnippetsPanel) { [weak self] in
+            self?.togglePanel(defaultTab: .snippets)
+        }
         GlobalHotkeyManager.shared.register(.toggleClipboardHistoryPanel) { [weak self] in
-            self?.toggleClipboardHistoryPanel()
+            self?.togglePanel(defaultTab: .clipboardHistory)
         }
     }
 
-    private func toggleSnippetsPanel() {
-        guard let controller = snippetsPanelController else { return }
-        if controller.isVisible {
-            controller.dismiss()
-        } else {
-            clipboardHistoryPanelController?.dismiss()
-            ensureAccessibilityPermission()
-            snippetsPanelViewModel?.reset()
-            controller.present()
+    /// 面板已打开且当前就在目标 Tab 上 → 关闭（维持"再按一次关闭"的习惯）；
+    /// 面板已打开但在另一个 Tab 上 → 切换过去，不关闭；面板没打开 → 打开并定位到目标 Tab。
+    private func togglePanel(defaultTab: ClipPowerPanelTab) {
+        // 防抖：如果用户把两个热键绑到了同一个键位，系统会把一次按键同时投给两个
+        // handler，短时间内连续调用两次 togglePanel 会变成"开了又立刻被关掉"，
+        // 表现就是面板一闪而过。这里直接忽略过近的重复触发。
+        let now = Date()
+        if let lastToggleAt, now.timeIntervalSince(lastToggleAt) < 0.3 {
+            return
         }
-    }
+        lastToggleAt = now
 
-    private func toggleClipboardHistoryPanel() {
-        guard let controller = clipboardHistoryPanelController else { return }
+        guard let controller = panelController, let viewModel = panelViewModel else { return }
         if controller.isVisible {
-            controller.dismiss()
+            if viewModel.activeTab == defaultTab {
+                controller.dismiss()
+            } else {
+                viewModel.activeTab = defaultTab
+            }
         } else {
-            snippetsPanelController?.dismiss()
             ensureAccessibilityPermission()
-            clipboardHistoryViewModel?.reset()
+            viewModel.present(defaultTab: defaultTab)
             controller.present()
         }
     }
@@ -138,15 +127,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openLibrary() {
         if libraryWindowController == nil {
-            libraryWindowController = LibraryWindowController(store: AppEnvironment.snippetStore)
+            libraryWindowController = LibraryWindowController(
+                store: AppEnvironment.snippetStore,
+                clipboardHistoryStore: AppEnvironment.clipboardHistoryStore
+            )
         }
         libraryWindowController?.show()
-    }
-
-    @objc private func openSettings() {
-        if settingsWindowController == nil {
-            settingsWindowController = SettingsWindowController(clipboardHistoryStore: AppEnvironment.clipboardHistoryStore)
-        }
-        settingsWindowController?.show()
     }
 }

@@ -54,9 +54,6 @@ struct ClipboardHistoryView: View {
             }
             .padding(10)
         }
-        .background(VisualEffectBackground())
-        .frame(width: 640, height: 420)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
         .onAppear { isSearchFocused = true }
     }
 }
