@@ -168,7 +168,9 @@ private struct QuickPanelDetailPane: View {
                 Image(systemName: snippet.visibility == .encryptedHidden ? "lock.fill" : "eye.slash")
                     .font(.system(size: 28))
                     .foregroundStyle(.secondary)
-                Text(snippet.visibility == .encryptedHidden ? "内容已加密，回车粘贴时会验证身份" : "内容已隐藏，回车可直接粘贴")
+                Text(snippet.visibility == .encryptedHidden
+                    ? LocalizedStringKey("内容已加密，回车粘贴时会验证身份")
+                    : LocalizedStringKey("内容已隐藏，回车可直接粘贴"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -205,7 +207,7 @@ private struct QuickPanelDetailPane: View {
 }
 
 struct InfoRow: View {
-    let label: String
+    let label: LocalizedStringKey
     let value: String
 
     var body: some View {
@@ -223,7 +225,7 @@ struct InfoRow: View {
 }
 
 struct PanelHintPill: View {
-    let text: String
+    let text: LocalizedStringKey
 
     var body: some View {
         Text(text)

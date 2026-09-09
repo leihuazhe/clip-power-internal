@@ -30,7 +30,7 @@ final class ImportExportViewModel: ObservableObject {
             let password = exportPassword.isEmpty ? nil : exportPassword
             return try await service.export(scope: scope, exportPassword: password)
         } catch {
-            statusMessage = "导出失败：\(error.localizedDescription)"
+            statusMessage = localizedFormat("exportFailedFormat", error.localizedDescription)
             return nil
         }
     }
@@ -61,13 +61,15 @@ final class ImportExportViewModel: ObservableObject {
         do {
             return try service.exportRaycastSnippets()
         } catch {
-            statusMessage = "导出失败：\(error.localizedDescription)"
+            statusMessage = localizedFormat("exportFailedFormat", error.localizedDescription)
             return nil
         }
     }
 
     private func summaryMessage(_ summary: ImportSummary) -> String {
-        "导入完成：新增 \(summary.imported)，覆盖 \(summary.overwritten)，新建副本 \(summary.duplicated)，"
-            + "跳过 \(summary.skipped)，失败 \(summary.failed)"
+        localizedFormat(
+            "importSummaryFormat",
+            summary.imported, summary.overwritten, summary.duplicated, summary.skipped, summary.failed
+        )
     }
 }

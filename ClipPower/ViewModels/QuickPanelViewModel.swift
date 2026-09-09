@@ -111,7 +111,7 @@ final class QuickPanelViewModel: ObservableObject {
                 onPaste?(content, .direct)
             } catch {
                 isRevealing = false
-                errorMessage = "验证失败：\(error.localizedDescription)"
+                errorMessage = localizedFormat("verificationFailedFormat", error.localizedDescription)
             }
         }
     }

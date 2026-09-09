@@ -63,7 +63,7 @@ struct ImportExportView: View {
             }
         }
         .padding(20)
-        .frame(maxWidth: 480, alignment: .topLeading)
+        .frame(maxWidth: 560, alignment: .topLeading)
         .alert("导入/导出结果", isPresented: statusAlertBinding) {
             Button("好") {}
         } message: {
@@ -92,9 +92,9 @@ struct ImportExportView: View {
             guard panel.runModal() == .OK, let url = panel.url else { return }
             do {
                 try data.write(to: url)
-                viewModel.statusMessage = "导出成功"
+                viewModel.statusMessage = String(localized: "导出成功")
             } catch {
-                viewModel.statusMessage = "导出失败：\(error.localizedDescription)"
+                viewModel.statusMessage = localizedFormat("exportFailedFormat", error.localizedDescription)
             }
         }
     }
@@ -128,9 +128,9 @@ struct ImportExportView: View {
             guard panel.runModal() == .OK, let url = panel.url else { return }
             do {
                 try data.write(to: url)
-                viewModel.statusMessage = "已导出为 Raycast 格式"
+                viewModel.statusMessage = String(localized: "已导出为 Raycast 格式")
             } catch {
-                viewModel.statusMessage = "导出失败：\(error.localizedDescription)"
+                viewModel.statusMessage = localizedFormat("exportFailedFormat", error.localizedDescription)
             }
         }
     }

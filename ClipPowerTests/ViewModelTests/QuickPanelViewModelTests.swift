@@ -155,7 +155,7 @@ final class QuickPanelViewModelTests: XCTestCase {
         let viewModel = QuickPanelViewModel(store: store)
 
         XCTAssertEqual(viewModel.groupedResults.count, 1)
-        XCTAssertEqual(viewModel.groupedResults.first?.title, "今天")
+        XCTAssertEqual(viewModel.groupedResults.first?.title, String(localized: "今天"))
         XCTAssertEqual(viewModel.groupedResults.first?.items.count, 2)
     }
 }

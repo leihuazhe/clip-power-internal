@@ -16,7 +16,7 @@ struct TrashView: View {
                         VStack(alignment: .leading) {
                             Text(snippet.name)
                             if let deletedAt = snippet.deletedAt {
-                                Text("删除于 \(deletedAt.formatted(date: .abbreviated, time: .shortened))")
+                                Text(localizedFormat("deletedAtFormat", deletedAt.formatted(date: .abbreviated, time: .shortened)))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }

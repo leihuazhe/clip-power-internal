@@ -274,6 +274,33 @@ M5（视觉打磨，调用 `design-consultation` skill 产出正式视觉规范�
 
 修复：给每一行加 `.id(index)`（`index` 就是 `results.firstIndex(of:)` 换算出来的真实下标，和分组无关），用 `ScrollViewReader` 包一层，`.onChange(of: viewModel.selectedIndex)` 触发时调用 `proxy.scrollTo(newIndex, anchor: .center)`（带一个 120ms 的 `easeOut` 小动画），确保选中行始终自动滚动到可视范围内。`QuickPanelView` 和 `ClipboardHistoryView` 是同一套列表结构，两边都改了同样的逻辑。（注：`.onChange(of:initial:_:)` 双参数闭包版本要 macOS 14+，项目部署目标是 macOS 13，用了单参数的旧版 `onChange(of:) { newValue in }`。）
 
+---
+
+## 国际化：支持英语 / 简体中文 / 日语，默认英语，设置里可切换
+
+用户要求全应用支持多语言（先做英/中/日三种），语言在「设置」里手动选择，且**默认使用英语**，不跟随系统语言。这是本项目第一次做国际化，扫描下来 `ClipPower/` 下 29 个 `.swift` 文件、165 处中文字符串字面量命中，涉及全部 View/ViewModel/Service 层，先过了一遍设计方案（详见 `/Users/huazhe.lei/.claude/plans/velvety-leaping-scott.md`）再动手。
+
+### 技术方案
+
+**用 Xcode String Catalog（`ClipPower/Resources/Localizable.xcstrings`），源语言设为 `zh-Hans`**：代码里现有的中文字面量就是 catalog 的 key，只要写好 `en`/`ja` 两组翻译，SwiftUI 的 `Text`/`Label`/`Button`/`TextField`/`Toggle`/`Picker`/`SecureField`/`LabeledContent` 这些 API 传字面量时天然会走 `LocalizedStringKey` 查表——**绝大多数调用点不用改一行代码**。`.xcstrings` 是纯 JSON，全程用 `xcodebuild` CLI 构建（没开 Xcode GUI 用"提取字符串"功能），所以是手写的完整 JSON，不是靠自动提取。手写时踩了两个真实的隐藏陷阱：
+- **三元表达式喂给 `Text(...)`（`Text(cond ? "a" : "b")`）不保证走 `LocalizedStringKey` 那个重载**——为了不赌编译器的类型推断，统一改成显式 `Text(cond ? LocalizedStringKey("a") : LocalizedStringKey("b"))`。
+- **字面量一旦先赋值给一个 `String` 类型的函数参数、再传进 `Text(变量)`，就会退化成不查表的 verbatim 重载**——`PanelHintPill.text`、`InfoRow.label`、`SnippetDetailView.maskedPlaceholder(text:)` 这三个内部小组件原来的参数类型都是 `String`，改成了 `LocalizedStringKey`，调用点不用变（本来传的就是字面量），但组件内部 `Text(text)` 才能真正生效。
+
+**运行时拼接的文案（错误提示、导入结果统计、日期/字节数格式化）不能靠字面量自动查表**，因为 key 必须是编译期常量。这类地方新增了一个小工具函数 `localizedFormat(_ key:, _ args: CVarArg...)`（`ClipPower/Services/LocalizedFormat.swift`），显式给一个自己起的 key（比如 `"importSummaryFormat"`）+ `String(format:)` 拼参数，而不是依赖 `String(localized: "文案\(x)")` 插值语法自动推导 key——插值语法生成的 key 格式不透明，手写 `.xcstrings` 时很容易对不上导致翻译悄悄不生效，显式 key 完全可控。一共 18 处这样的格式化文案（各种"XX 失败：%@"、导入结果统计、"更新于/删除于 %@"、图片尺寸/文件数量等）。
+
+**语言切换机制：设置里选、默认英语、切换后需要重启生效**。这是最关键的取舍：macOS 对 `Bundle.main` 本地化字符串的解析是进程启动早期就定死并缓存的，运行时改 `UserDefaults` 的 `AppleLanguages` 键不会让已经在跑的进程里的文案立刻刷新——要做到"选完立刻生效不用重启"，得给全部文案单独写一套自己维护的 Bundle 查表函数，不能再依赖 SwiftUI 原生的 `Text` 自动本地化。对 ClipPower 这个个人小工具来说，这个复杂度换来的收益不成比例，所以选了"改语言后需要重启一次"的方案（很多 Mac 小工具也是这么做的）：
+- 新增 `AppLanguage` 枚举（`en`/`zhHans`/`ja`），`displayName` 永远用语言自己的写法显示（"English"/"简体中文"/"日本語"），不跟着当前 App 语言本地化——不管界面现在是什么语言，用户都能在选择器里认出自己想切的那个。
+- 新增 `AppLanguageManager`（`ClipPower/Services/AppLanguageManager.swift`）：`apply(_:)` 写偏好 + `AppleLanguages`；`relaunch()` 用 `NSWorkspace.openApplication` 重新拉起同一个 `.app` bundle 的新进程，再 `NSApp.terminate` 退出当前进程。
+- `AppDelegate.applicationDidFinishLaunching` 最开头检查：如果还没存过语言偏好（真正的首次启动），不跟随系统语言，直接写入 `.en` 并**静默重启一次**再退出，不搭建任何 UI——这样用户看到的第一帧界面就已经是英文，不会有"先看到系统语言、之后才变成英文"的一次性突兀体验。
+- 「设置」页新增「语言」分组，一个 `Picker` 绑定三个语言，选中新值后弹 `.alert` 提示需要重启，"现在重启"按钮触发同样的 `relaunch()`。
+
+### 实现过程中发现并修的两个真实 bug
+
+1. **重启逻辑有竞态，导致新进程压根没起来**：最初写法是 `NSWorkspace.shared.openApplication(...) { _, _ in }` 后紧跟着立刻 `NSApp.terminate(nil)`。`openApplication` 底层是一次到 Launch Services 的异步 XPC 往返，当前进程如果在这次往返真正处理完之前就退出，拉起新进程的请求会直接被丢弃——实测复现了（`ps aux` 看不到任何新进程）。修复：把 `terminate` 挪到 `openApplication` 的 completion handler 里面，等这次请求真正处理完之后再退出。
+2. **单元测试把 `ClipPower.app` 自己当 test host 跑，首次启动的静默重启逻辑在测试进程里被触发，直接把测试宿主进程杀了**：`xcodebuild test` 报"测试运行器过早退出"。根因是 `ClipPowerTests` 的 macOS 单测默认拿 `ClipPower.app` 本身当宿主进程启动，`AppDelegate.applicationDidFinishLaunching` 在这个上下文里也会真的跑一遍——这台机器是第一次跑这段新代码，还没存过语言偏好，于是触发了"首次启动→写偏好→重启→terminate"这条路径，而重启一个新进程对正在等待连接的 XCTest 驱动毫无意义，`terminate` 反而直接把测试宿主杀了。修复：`AppLanguageManager.isRunningTests`（检查 `ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"]`）跳过这条路径，测试环境下直接走正常启动流程，语言解析退化成"这次跑测试就用默认 `.en`，不落盘、不重启"。
+
+顺带修了两个因为文案变成"运行时才能确定"而暴露出的测试脆弱点：`DateSectionGroupingTests`/`QuickPanelViewModelTests` 原来直接断言硬编码中文字面量（"今天"/"昨天"），现在 `DateSectionGrouping.title(for:)` 会按运行环境语言解析，测试机的语言不一定是中文——改成断言 `String(localized: "今天")`，跟生产代码走同一条本地化解析路径，不再硬编码某个语言的具体文案。
+
 ### 导出兼容 Raycast 格式
 
 之前只做了"导入 Raycast Snippets JSON"这一个方向，用户追问"导出兼容 Raycast 了吗"才发现导出方向一直没做——`ImportExportService.export` 只有我们自己的 `ExportPackage` 格式（带 `formatVersion`/加密信息，是为了保留隐藏能力设计的，Raycast 的纯数组格式装不下这些）。
@@ -287,3 +314,13 @@ M5（视觉打磨，调用 `design-consultation` skill 产出正式视觉规范�
 根因：`ImportExportViewModel.export()`/`exportRaycastFile()` 在内存里把 JSON 数据生成出来的那一刻，就直接把 `statusMessage` 设成了成功文案；而调用方 `ImportExportView` 的流程是先拿到这份数据，再弹出 `NSSavePanel` 让用户选保存位置——"提示结果"这一步发生在用户真正点击 Save**之前**。数据生成本身几乎是瞬间完成的（纯内存 JSON 编码，不涉及磁盘/网络），所以看起来就是"面板还没出现，成功提示先跳出来了"。这个时序问题其实从最早的 `export()` 实现起就存在，只是之前用一行不起眼的 caption 展示，不容易被注意到；换成醒目的 `.alert` 弹窗后，问题一下就暴露出来了。
 
 修复：把"设置成功文案"这一步从 ViewModel 的 `export`/`exportRaycastFile` 里删掉——这两个方法现在只负责生成数据，失败才设 `statusMessage`（这类错误跟保存面板无关，提前报是对的）。改成 `ImportExportView` 里等 `NSSavePanel.runModal() == .OK` 且 `data.write(to:)` 真正写盘成功之后，才把 `viewModel.statusMessage` 设成功文案；写盘失败会捕获异常改成失败文案；用户在保存面板点 Cancel 则什么提示都不弹（本来就没有产生任何"结果"）。普通导出和 Raycast 格式导出两个入口都这样改了。
+
+### 用 /design-review 做的一次布局审视：三栏 NavigationSplitView 里长期空着的第三栏
+
+`/design-review` 这个 skill 本身是给 Web 前端（浏览器 DOM/CSS 自动化）设计的，ClipPower 是纯原生 SwiftUI/AppKit 菜单栏应用，没有网页、没有 DOM，这个仓库也不是 git 仓库——`$B` 浏览器自动化、CSS 提取、per-fix commit 这些环节都不适用。改成源码级审查（`grep` 统计 `Views/` 下的字体/间距/颜色用量）+ 对话里已有的真实截图。
+
+审查结论：字体全部用系统语义字体（`.headline`/`.caption`/`.body`），颜色全部用 `.secondary`/`Color.accentColor` 语义色，没有硬编码 hex——这两点是原生 App 的正确做法（Web 版 AI slop 检测里"别用默认字体系统"这条规则不适用于原生 App，反而这里是优点）。间距数值比较零散（1/2/3/4/5/6/8/10/12/14/20 混用），是 Polish 级别的瑕疵，影响很小没有动。
+
+真正发现的结构性问题：`LibraryView` 用的三栏 `NavigationSplitView`（侧栏/内容/详情），但「回收站」「设置」「导入/导出」这三个场景下第三栏（详情）一直是空的灰色区域，只有「全部片段」真正用到"列表+详情"的三栏关系——这也解释了为什么之前两次单独加宽"侧栏"和"内容列"都没有从根本上解决"看起来很挤"的感觉：真正浪费的是那块常年空着的第三栏，而不是列宽数字本身。
+
+和用户确认后，改成两栏结构：`NavigationSplitView` 只保留 sidebar + detail 两个闭包，「回收站/设置/导入导出」直接把各自的视图放进 `detail:`（这样能用满除侧栏外的全部宽度）；「全部片段」原来靠 SwiftUI 原生三栏给的"列表+详情"关系，改成在 `detail:` 里手动拼一个 `HStack`（`SnippetListView` 固定宽度 260pt + `Divider()` + `SnippetDetailView`）。代价是这个列表栏不再能像原生三栏那样被用户拖拽调宽（固定 260pt，和浮层里 Snippets/剪贴板历史列表同宽，保持全局一致），换来的是其它三个场景终于能用满剩余宽度，不再有那块永远空着的灰色区域。

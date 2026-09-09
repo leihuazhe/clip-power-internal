@@ -55,43 +55,43 @@ struct LibraryView: View {
                 Label("设置", systemImage: "gearshape").tag(SidebarItem.settings)
             }
             .navigationSplitViewColumnWidth(min: 140, ideal: 160)
-        } content: {
-            Group {
-                switch sidebarSelection {
-                case .trash:
-                    TrashView(viewModel: trashViewModel)
-                case .settings:
-                    SettingsView(viewModel: settingsViewModel)
-                case .importExport:
-                    ImportExportView(viewModel: importExportViewModel, showsCloseButton: false)
-                default:
+        } detail: {
+            // 「回收站/设置/导入导出」没有"列表+详情"的关系，只有一块内容——不再借用三栏
+            // NavigationSplitView 的第三栏（那样会一直空出一块灰色区域）。只有「全部片段」
+            // 真正需要列表+详情两块，用一个固定宽度的 HStack 手动拼，代价是列表这一栏不能再
+            // 像原生三栏那样被用户拖拽调宽，但换来的是其它三个场景能用满剩余宽度。
+            switch sidebarSelection {
+            case .trash:
+                TrashView(viewModel: trashViewModel)
+            case .settings:
+                SettingsView(viewModel: settingsViewModel)
+            case .importExport:
+                ImportExportView(viewModel: importExportViewModel, showsCloseButton: false)
+            default:
+                HStack(spacing: 0) {
                     SnippetListView(
                         snippets: libraryViewModel.snippets,
                         selection: $listSelection,
                         searchText: $libraryViewModel.searchText
                     )
-                }
-            }
-            .navigationSplitViewColumnWidth(min: 320, ideal: 420, max: 560)
-        } detail: {
-            switch sidebarSelection {
-            case .trash, .settings, .importExport:
-                Color.clear
-            default:
-                if let id = listSelection, let snippet = libraryViewModel.snippets.first(where: { $0.id == id }) {
-                    SnippetDetailView(
-                        snippet: snippet,
-                        libraryViewModel: libraryViewModel,
-                        onEdit: {
-                            editorTarget = .edit(snippet)
-                        },
-                        onDelete: {
-                            libraryViewModel.softDelete(snippet)
-                            listSelection = nil
-                        }
-                    )
-                } else {
-                    emptyDetailPlaceholder
+                    .frame(width: 260)
+                    Divider()
+                    if let id = listSelection, let snippet = libraryViewModel.snippets.first(where: { $0.id == id }) {
+                        SnippetDetailView(
+                            snippet: snippet,
+                            libraryViewModel: libraryViewModel,
+                            onEdit: {
+                                editorTarget = .edit(snippet)
+                            },
+                            onDelete: {
+                                libraryViewModel.softDelete(snippet)
+                                listSelection = nil
+                            }
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        emptyDetailPlaceholder
+                    }
                 }
             }
         }

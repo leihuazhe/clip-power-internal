@@ -32,7 +32,7 @@ final class SnippetEncryptionService: SnippetContentRevealing, Sendable {
         }
 
         let keyManager = self.keyManager
-        let cipherContent = try await biometricGate.authenticate(reason: "启用加密隐藏需要验证身份") { context in
+        let cipherContent = try await biometricGate.authenticate(reason: String(localized: "启用加密隐藏需要验证身份")) { context in
             try keyManager.setupEncryptionIfNeeded(context: context)
             let dek = try keyManager.unwrapDEK(context: context)
             return try SnippetCipher.encrypt(plaintext: plainContent, using: dek)
@@ -53,7 +53,7 @@ final class SnippetEncryptionService: SnippetContentRevealing, Sendable {
         }
 
         let keyManager = self.keyManager
-        return try await biometricGate.authenticate(reason: "查看加密内容需要验证身份") { context in
+        return try await biometricGate.authenticate(reason: String(localized: "查看加密内容需要验证身份")) { context in
             let dek = try keyManager.unwrapDEK(context: context)
             return try SnippetCipher.decrypt(cipherContent: cipherContent, using: dek)
         }

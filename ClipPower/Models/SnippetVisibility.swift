@@ -7,9 +7,9 @@ enum SnippetVisibility: String, Codable, CaseIterable, Sendable, Hashable {
 
     var displayName: String {
         switch self {
-        case .normal: return "公开"
-        case .softHidden: return "软隐藏"
-        case .encryptedHidden: return "加密隐藏"
+        case .normal: return String(localized: "公开")
+        case .softHidden: return String(localized: "软隐藏")
+        case .encryptedHidden: return String(localized: "加密隐藏")
         }
     }
 }

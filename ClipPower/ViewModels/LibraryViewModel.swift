@@ -22,7 +22,7 @@ final class LibraryViewModel: ObservableObject {
         do {
             snippets = try store.search(searchText)
         } catch {
-            errorMessage = "加载片段失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("loadSnippetsFailedFormat", error.localizedDescription)
         }
     }
 
@@ -60,10 +60,10 @@ final class LibraryViewModel: ObservableObject {
             reload()
             return true
         } catch SnippetStoreError.duplicateKeyword {
-            errorMessage = "触发词「\(draft.keyword ?? "")」已被占用，请换一个"
+            errorMessage = localizedFormat("keywordTakenFormat", draft.keyword ?? "")
             return false
         } catch {
-            errorMessage = "保存失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("saveFailedFormat", error.localizedDescription)
             return false
         }
     }
@@ -73,7 +73,7 @@ final class LibraryViewModel: ObservableObject {
             try store.softDelete(id: snippet.id)
             reload()
         } catch {
-            errorMessage = "删除失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("deleteFailedFormat", error.localizedDescription)
         }
     }
 
@@ -85,7 +85,7 @@ final class LibraryViewModel: ObservableObject {
         do {
             return try await encryptionService.reveal(snippet)
         } catch {
-            errorMessage = "验证失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("verificationFailedFormat", error.localizedDescription)
             return nil
         }
     }
@@ -103,7 +103,7 @@ final class LibraryViewModel: ObservableObject {
             let restored = try await encryptionService.unhide(snippet)
             persist(restored)
         } catch {
-            errorMessage = "解除加密隐藏失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("unhideEncryptedFailedFormat", error.localizedDescription)
         }
     }
 
@@ -112,7 +112,7 @@ final class LibraryViewModel: ObservableObject {
             _ = try store.update(snippet)
             reload()
         } catch {
-            errorMessage = "更新失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("updateFailedFormat", error.localizedDescription)
         }
     }
 }

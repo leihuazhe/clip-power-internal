@@ -47,14 +47,14 @@ struct ClipboardHistoryItem: Identifiable, Codable, Sendable, Equatable {
             return textContent ?? ""
         case .image:
             if let imageWidth, let imageHeight {
-                return "图片 (\(imageWidth)×\(imageHeight))"
+                return localizedFormat("imageDimensionsFormat", imageWidth, imageHeight)
             }
-            return "图片"
+            return String(localized: "图片")
         case .file:
             if fileURLs.count > 1 {
-                return "\(fileURLs.count) 个文件"
+                return localizedFormat("fileCountFormat", fileURLs.count)
             }
-            return fileURLs.first.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "文件"
+            return fileURLs.first.map { URL(fileURLWithPath: $0).lastPathComponent } ?? String(localized: "文件")
         }
     }
 }

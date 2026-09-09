@@ -14,6 +14,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         setvbuf(stdout, nil, _IONBF, 0) // 关闭 stdout 缓冲，终端直跑时能实时看到 print 日志
+
+        // 真正的首次启动（还没存过语言偏好）：不跟随系统语言，默认英语。写完偏好立刻
+        // 静默重启一次再退出——避免用户看到"第一帧是系统语言，之后才变成英文"这种
+        // 一次性的突兀体验；本次进程后面的 UI 搭建全部跳过，交给重启后的新进程。
+        if !AppLanguageManager.hasStoredPreference && !AppLanguageManager.isRunningTests {
+            AppLanguageManager.apply(.en)
+            AppLanguageManager.relaunch()
+            return
+        }
+
         _ = AppEnvironment.snippetStore // 触发数据库初始化与迁移
         try? AppEnvironment.snippetStore.purgeExpiredTrash()
 
@@ -31,10 +41,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             accessibilityDescription: "Clip Power"
         )
 
-        let openItem = NSMenuItem(title: "打开管理窗口", action: #selector(openLibrary), keyEquivalent: "")
+        let openItem = NSMenuItem(title: String(localized: "打开管理窗口"), action: #selector(openLibrary), keyEquivalent: "")
         openItem.target = self
 
-        let quitItem = NSMenuItem(title: "退出 Clip Power", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: String(localized: "退出 Clip Power"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
         let menu = NSMenu()
         menu.addItem(openItem)

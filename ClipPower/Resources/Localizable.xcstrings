@@ -1,0 +1,798 @@
+{
+  "sourceLanguage" : "zh-Hans",
+  "strings" : {
+    "搜索剪贴板历史..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search clipboard history..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボード履歴を検索..." } }
+      }
+    },
+    "清空" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "消去" } }
+      }
+    },
+    "↩ 粘贴" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "↩ Paste" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "↩ 貼り付け" } }
+      }
+    },
+    "↑↓ 切换" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "↑↓ Navigate" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "↑↓ 切り替え" } }
+      }
+    },
+    "Esc 关闭" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Esc Close" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Esc 閉じる" } }
+      }
+    },
+    "剪贴板历史是空的" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clipboard history is empty" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボード履歴は空です" } }
+      }
+    },
+    "选择一项查看详情" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Select an item to view details" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "項目を選択して詳細を表示" } }
+      }
+    },
+    "图片数据不可用" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Image data unavailable" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "画像データを利用できません" } }
+      }
+    },
+    "类型" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Type" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "種類" } }
+      }
+    },
+    "字符数" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Characters" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "文字数" } }
+      }
+    },
+    "尺寸" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Dimensions" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "サイズ" } }
+      }
+    },
+    "大小" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Size" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "容量" } }
+      }
+    },
+    "数量" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Count" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "件数" } }
+      }
+    },
+    "记录于" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recorded" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "記録日時" } }
+      }
+    },
+    "文本" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Text" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "テキスト" } }
+      }
+    },
+    "图片" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Image" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "画像" } }
+      }
+    },
+    "文件" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "File" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ファイル" } }
+      }
+    },
+    "全部片段" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "All Snippets" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "すべてのスニペット" } }
+      }
+    },
+    "导入/导出" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import/Export" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポート/エクスポート" } }
+      }
+    },
+    "回收站" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trash" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ゴミ箱" } }
+      }
+    },
+    "设置" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定" } }
+      }
+    },
+    "新建" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新規作成" } }
+      }
+    },
+    "出错了" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Something Went Wrong" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エラーが発生しました" } }
+      }
+    },
+    "好" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "OK" } }
+      }
+    },
+    "选择一个片段查看详情" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Select a snippet to view details" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スニペットを選択して詳細を表示" } }
+      }
+    },
+    "编辑" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "編集" } }
+      }
+    },
+    "删除" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除" } }
+      }
+    },
+    "软隐藏" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Soft Hidden" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソフト非表示" } }
+      }
+    },
+    "加密隐藏" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Encrypted Hidden" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "暗号化非表示" } }
+      }
+    },
+    "公开" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Public" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "公開" } }
+      }
+    },
+    "重新隐藏" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide Again" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "再度隠す" } }
+      }
+    },
+    "取消软隐藏" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unhide" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "非表示を解除" } }
+      }
+    },
+    "内容已隐藏，点击查看" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Content is hidden, tap to view" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "内容は非表示です。タップして表示" } }
+      }
+    },
+    "解除加密隐藏" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove Encryption" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "暗号化を解除" } }
+      }
+    },
+    "内容已加密，需要验证身份后才能查看" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Content is encrypted, authenticate to view" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "内容は暗号化されています。認証すると表示できます" } }
+      }
+    },
+    "点击查看" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tap to View" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タップして表示" } }
+      }
+    },
+    "新建片段" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Snippet" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新しいスニペット" } }
+      }
+    },
+    "编辑片段" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit Snippet" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スニペットを編集" } }
+      }
+    },
+    "标题" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Title" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タイトル" } }
+      }
+    },
+    "触发词（选填）" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trigger word (optional)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "トリガーワード（任意）" } }
+      }
+    },
+    "标签，用逗号分隔（选填）" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tags, comma-separated (optional)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "タグ（カンマ区切り、任意）" } }
+      }
+    },
+    "可见性" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Visibility" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "表示設定" } }
+      }
+    },
+    "保存时会要求 Touch ID / 密码验证，内容将加密存储" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Saving will require Touch ID / password authentication, and the content will be stored encrypted" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存時に Touch ID／パスワード認証が必要になり、内容は暗号化して保存されます" } }
+      }
+    },
+    "内容" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Content" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "内容" } }
+      }
+    },
+    "取消" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "キャンセル" } }
+      }
+    },
+    "保存" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存" } }
+      }
+    },
+    "搜索片段..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search snippets..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スニペットを検索..." } }
+      }
+    },
+    "还没有片段，点击右上角「+」创建一个" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No snippets yet — click the “+” in the top right to create one" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "まだスニペットがありません。右上の「+」から作成してください" } }
+      }
+    },
+    "没有匹配的片段" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No matching snippets" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "一致するスニペットがありません" } }
+      }
+    },
+    "●●●●● 已隐藏" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "●●●●● Hidden" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "●●●●● 非表示" } }
+      }
+    },
+    "回收站是空的" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trash is empty" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ゴミ箱は空です" } }
+      }
+    },
+    "恢复" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Restore" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "復元" } }
+      }
+    },
+    "永久删除" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete Permanently" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "完全に削除" } }
+      }
+    },
+    "⇥ 切换标签" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "⇥ Switch Tab" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "⇥ タブ切り替え" } }
+      }
+    },
+    "验证中..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Verifying..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "認証中..." } }
+      }
+    },
+    "内容已加密，回车粘贴时会验证身份" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Content is encrypted — pressing Enter will require authentication before pasting" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "内容は暗号化されています。Enterで貼り付ける際に認証が必要です" } }
+      }
+    },
+    "内容已隐藏，回车可直接粘贴" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Content is hidden — press Enter to paste directly" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "内容は非表示です。Enterでそのまま貼り付けられます" } }
+      }
+    },
+    "名称" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Name" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "名前" } }
+      }
+    },
+    "触发词" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trigger Word" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "トリガーワード" } }
+      }
+    },
+    "使用次数" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Usage Count" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "使用回数" } }
+      }
+    },
+    "最近使用" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Last Used" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "最終使用" } }
+      }
+    },
+    "创建于" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Created" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "作成日時" } }
+      }
+    },
+    "导入 / 导出" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import / Export" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポート / エクスポート" } }
+      }
+    },
+    "导出" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エクスポート" } }
+      }
+    },
+    "包含软隐藏片段" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Include soft-hidden snippets" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソフト非表示のスニペットを含める" } }
+      }
+    },
+    "包含加密隐藏片段" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Include encrypted-hidden snippets" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "暗号化非表示のスニペットを含める" } }
+      }
+    },
+    "导出密码（留空则加密内容仅本机可用）" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export password (leave blank to keep encrypted content device-only)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エクスポート用パスワード（空欄の場合、暗号化内容はこの端末専用になります）" } }
+      }
+    },
+    "选择位置并导出..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose Location and Export..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存先を選んでエクスポート..." } }
+      }
+    },
+    "导入" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポート" } }
+      }
+    },
+    "冲突处理" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Conflict Handling" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "競合の処理方法" } }
+      }
+    },
+    "导入密码（若导出时设置了密码）" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import password (if one was set during export)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポート用パスワード（エクスポート時に設定した場合）" } }
+      }
+    },
+    "选择文件并导入..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose File and Import..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ファイルを選んでインポート..." } }
+      }
+    },
+    "与 Raycast 互通" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Raycast Interoperability" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Raycast との連携" } }
+      }
+    },
+    "Raycast 官方 Snippets JSON 格式为 [{ name, text, keyword }]，没有可见性/加密概念。导入时全部落库为公开可见性；导出时只包含公开（未隐藏）片段——软隐藏/加密隐藏的内容不会被导出成这种没有任何保护的明文格式。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Raycast's official Snippets JSON format is [{ name, text, keyword }], with no concept of visibility or encryption. Importing saves everything as public; exporting includes only public (non-hidden) snippets — soft-hidden and encrypted-hidden content is never exported into this unprotected plain-text format." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Raycast公式のSnippets JSON形式は [{ name, text, keyword }] で、表示設定や暗号化の概念がありません。インポート時はすべて公開として保存され、エクスポート時は公開（非表示でない）スニペットのみが含まれます。ソフト非表示・暗号化非表示の内容は、保護のないこの平文形式で書き出されることはありません。" } }
+      }
+    },
+    "选择 Raycast Snippets 文件导入..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose a Raycast Snippets File to Import..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Raycast Snippetsファイルを選んでインポート..." } }
+      }
+    },
+    "导出为 Raycast 格式..." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export as Raycast Format..." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Raycast形式でエクスポート..." } }
+      }
+    },
+    "关闭" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Close" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "閉じる" } }
+      }
+    },
+    "导入/导出结果" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import/Export Result" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポート/エクスポート結果" } }
+      }
+    },
+    "打开 ClipPower" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open ClipPower" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ClipPowerを開く" } }
+      }
+    },
+    "直接打开「片段」" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open “Snippets” Directly" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "「スニペット」を直接開く" } }
+      }
+    },
+    "直接打开「剪贴板历史」" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open “Clipboard History” Directly" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "「クリップボード履歴」を直接開く" } }
+      }
+    },
+    "全局快捷键" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Global Shortcuts" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "グローバルショートカット" } }
+      }
+    },
+    "面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "While the panel is open, press ⇥ to switch between the “Snippets” and “Clipboard History” tabs." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "パネルが開いている間に⇥を押すと、「スニペット」と「クリップボード履歴」のタブを切り替えられます。" } }
+      }
+    },
+    "已记录条数" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Items Recorded" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "記録件数" } }
+      }
+    },
+    "清空剪贴板历史" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear Clipboard History" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボード履歴を消去" } }
+      }
+    },
+    "剪贴板历史" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clipboard History" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボード履歴" } }
+      }
+    },
+    "跳过" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スキップ" } }
+      }
+    },
+    "覆盖" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Overwrite" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "上書き" } }
+      }
+    },
+    "新建副本" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Duplicate as New" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新規コピーを作成" } }
+      }
+    },
+    "片段" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Snippets" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スニペット" } }
+      }
+    },
+    "导出成功" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export Successful" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エクスポートに成功しました" } }
+      }
+    },
+    "已导出为 Raycast 格式" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Exported as Raycast Format" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Raycast形式でエクスポートしました" } }
+      }
+    },
+    "打开管理窗口" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Manager Window" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "管理ウインドウを開く" } }
+      }
+    },
+    "退出 Clip Power" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quit Clip Power" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Clip Powerを終了" } }
+      }
+    },
+    "启用加密隐藏需要验证身份" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Authentication is required to enable encrypted hiding" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "暗号化非表示を有効にするには認証が必要です" } }
+      }
+    },
+    "查看加密内容需要验证身份" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Authentication is required to view encrypted content" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "暗号化された内容を表示するには認証が必要です" } }
+      }
+    },
+    "此设备不支持身份验证" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This device does not support authentication" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "このデバイスは認証に対応していません" } }
+      }
+    },
+    "验证未通过" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Authentication failed" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "認証に失敗しました" } }
+      }
+    },
+    "今天" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今日" } }
+      }
+    },
+    "昨天" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Yesterday" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "昨日" } }
+      }
+    },
+    "本月" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This Month" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今月" } }
+      }
+    },
+    "更早" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Earlier" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "それ以前" } }
+      }
+    },
+    "语言" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "言語" } }
+      }
+    },
+    "切换语言需要重启 ClipPower 才能生效。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Switching languages requires restarting ClipPower to take effect." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "言語を切り替えるには ClipPower の再起動が必要です。" } }
+      }
+    },
+    "语言已更改" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language Changed" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "言語が変更されました" } }
+      }
+    },
+    "现在重启" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Restart Now" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "今すぐ再起動" } }
+      }
+    },
+    "稍后" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Later" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "後で" } }
+      }
+    },
+    "需要重启 ClipPower 才能生效。" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "ClipPower needs to restart to apply this change." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "この変更を適用するには ClipPower の再起動が必要です。" } }
+      }
+    },
+    "loadSnippetsFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Failed to load snippets: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スニペットの読み込みに失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "加载片段失败：%@" } }
+      }
+    },
+    "keywordTakenFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trigger word “%@” is already in use — please choose another" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "トリガーワード「%@」は既に使用されています。別の単語を選んでください" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "触发词「%@」已被占用，请换一个" } }
+      }
+    },
+    "saveFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save failed: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "保存に失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存失败：%@" } }
+      }
+    },
+    "deleteFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete failed: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除に失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除失败：%@" } }
+      }
+    },
+    "verificationFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Verification failed: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "認証に失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "验证失败：%@" } }
+      }
+    },
+    "unhideEncryptedFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Failed to remove encryption: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "暗号化の解除に失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "解除加密隐藏失败：%@" } }
+      }
+    },
+    "updateFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Update failed: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "更新に失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更新失败：%@" } }
+      }
+    },
+    "loadTrashFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Failed to load trash: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ゴミ箱の読み込みに失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "加载回收站失败：%@" } }
+      }
+    },
+    "restoreFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Restore failed: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "復元に失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复失败：%@" } }
+      }
+    },
+    "permanentDeleteFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Permanent delete failed: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "完全削除に失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "永久删除失败：%@" } }
+      }
+    },
+    "exportFailedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export failed: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エクスポートに失敗しました：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导出失败：%@" } }
+      }
+    },
+    "importSummaryFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import complete: %d added, %d overwritten, %d duplicated, %d skipped, %d failed" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "インポート完了：追加 %d、上書き %d、複製作成 %d、スキップ %d、失敗 %d" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "导入完成：新增 %d，覆盖 %d，新建副本 %d，跳过 %d，失败 %d" } }
+      }
+    },
+    "imageDimensionsFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Image (%d×%d)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "画像 (%d×%d)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "图片 (%d×%d)" } }
+      }
+    },
+    "fileCountFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%d files" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d個のファイル" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%d 个文件" } }
+      }
+    },
+    "updatedAtFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Updated %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "更新日時：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更新于 %@" } }
+      }
+    },
+    "keywordLabelFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trigger: %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "トリガー：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "触发词：%@" } }
+      }
+    },
+    "deletedAtFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Deleted %@" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "削除日時：%@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除于 %@" } }
+      }
+    },
+    "itemCountFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%d" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "%d個" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%d 个" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

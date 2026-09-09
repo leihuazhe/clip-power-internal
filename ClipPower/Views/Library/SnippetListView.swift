@@ -18,7 +18,9 @@ struct SnippetListView: View {
 
             if snippets.isEmpty {
                 Spacer()
-                Text(searchText.isEmpty ? "还没有片段，点击右上角「+」创建一个" : "没有匹配的片段")
+                Text(searchText.isEmpty
+                    ? LocalizedStringKey("还没有片段，点击右上角「+」创建一个")
+                    : LocalizedStringKey("没有匹配的片段"))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                 Spacer()

@@ -8,9 +8,9 @@ enum ImportConflictPolicy: Hashable, CaseIterable, Sendable {
 
     var displayName: String {
         switch self {
-        case .skip: return "跳过"
-        case .overwrite: return "覆盖"
-        case .duplicateAsNew: return "新建副本"
+        case .skip: return String(localized: "跳过")
+        case .overwrite: return String(localized: "覆盖")
+        case .duplicateAsNew: return String(localized: "新建副本")
         }
     }
 }

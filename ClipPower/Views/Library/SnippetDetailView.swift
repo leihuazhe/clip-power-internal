@@ -32,7 +32,7 @@ struct SnippetDetailView: View {
 
             Spacer()
 
-            Text("更新于 \(snippet.updatedAt.formatted(date: .abbreviated, time: .shortened))")
+            Text(localizedFormat("updatedAtFormat", snippet.updatedAt.formatted(date: .abbreviated, time: .shortened)))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
@@ -50,7 +50,7 @@ struct SnippetDetailView: View {
                     visibilityBadge
                 }
                 if let keyword = snippet.keyword {
-                    Text("触发词：\(keyword)").font(.caption).foregroundStyle(.secondary)
+                    Text(localizedFormat("keywordLabelFormat", keyword)).font(.caption).foregroundStyle(.secondary)
                 }
             }
             Spacer()
@@ -126,7 +126,7 @@ struct SnippetDetailView: View {
         }
     }
 
-    private func maskedPlaceholder(icon: String, text: String, isBusy: Bool = false, action: @escaping () -> Void) -> some View {
+    private func maskedPlaceholder(icon: String, text: LocalizedStringKey, isBusy: Bool = false, action: @escaping () -> Void) -> some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 32))

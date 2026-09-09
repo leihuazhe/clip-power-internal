@@ -19,7 +19,7 @@ final class TrashViewModel: ObservableObject {
         do {
             snippets = try store.fetchTrash()
         } catch {
-            errorMessage = "加载回收站失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("loadTrashFailedFormat", error.localizedDescription)
         }
     }
 
@@ -29,7 +29,7 @@ final class TrashViewModel: ObservableObject {
             reload()
             onChange()
         } catch {
-            errorMessage = "恢复失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("restoreFailedFormat", error.localizedDescription)
         }
     }
 
@@ -38,7 +38,7 @@ final class TrashViewModel: ObservableObject {
             try store.permanentlyDelete(id: snippet.id)
             reload()
         } catch {
-            errorMessage = "永久删除失败：\(error.localizedDescription)"
+            errorMessage = localizedFormat("permanentDeleteFailedFormat", error.localizedDescription)
         }
     }
 }

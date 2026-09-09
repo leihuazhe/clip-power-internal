@@ -211,7 +211,7 @@ private struct ClipboardDetailPane: View {
                 }
                 InfoRow(label: "大小", value: formattedByteSize(item.byteSize))
             case .file:
-                InfoRow(label: "数量", value: "\(item.fileURLs.count) 个")
+                InfoRow(label: "数量", value: localizedFormat("itemCountFormat", item.fileURLs.count))
                 InfoRow(label: "大小", value: formattedByteSize(item.byteSize))
             }
             InfoRow(label: "记录于", value: item.createdAt.formatted(date: .abbreviated, time: .shortened))

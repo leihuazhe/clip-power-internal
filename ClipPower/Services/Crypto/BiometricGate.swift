@@ -37,7 +37,7 @@ actor BiometricGate {
         let context = LAContext()
         var evalError: NSError?
         guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &evalError) else {
-            throw BiometricGateError.authenticationFailed(evalError?.localizedDescription ?? "此设备不支持身份验证")
+            throw BiometricGateError.authenticationFailed(evalError?.localizedDescription ?? String(localized: "此设备不支持身份验证"))
         }
 
         try await evaluate(context: context, reason: reason)
@@ -57,7 +57,7 @@ actor BiometricGate {
                 if success {
                     continuation.resume()
                 } else {
-                    continuation.resume(throwing: BiometricGateError.authenticationFailed(error?.localizedDescription ?? "验证未通过"))
+                    continuation.resume(throwing: BiometricGateError.authenticationFailed(error?.localizedDescription ?? String(localized: "验证未通过")))
                 }
             }
         }
