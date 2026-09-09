@@ -1,0 +1,60 @@
+name: Release
+
+# 只在推版本 tag（比如 v0.2.0）时触发——平时往 main 推代码不会构建/发布任何东西，
+# 避免 Releases 页面被日常 commit 刷成噪音，也避免每次 push 都白跑一次编译。
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write # 需要写权限才能创建 Release 并上传附件
+
+jobs:
+  build-and-release:
+    runs-on: macos-14 # Apple Silicon runner，匹配本项目 arm64-only 的定位
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build (Release configuration, ad-hoc signed)
+        run: |
+          xcodebuild \
+            -project ClipPower.xcodeproj \
+            -scheme ClipPower \
+            -configuration Release \
+            -derivedDataPath build \
+            MARKETING_VERSION="${{ steps.version.outputs.version }}" \
+            CODE_SIGN_IDENTITY="-" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=YES \
+            clean build
+
+      - name: Zip the app
+        run: |
+          cd build/Build/Products/Release
+          ditto -c -k --sequesterRsrc --keepParent ClipPower.app "ClipPower-${{ steps.version.outputs.version }}.zip"
+          mv "ClipPower-${{ steps.version.outputs.version }}.zip" "$GITHUB_WORKSPACE/"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "ClipPower ${{ steps.version.outputs.version }}"
+          generate_release_notes: true
+          files: ClipPower-${{ steps.version.outputs.version }}.zip
+          body: |
+            This build is ad-hoc signed, not notarized. On first launch, macOS will refuse
+            to open it — run `xattr -cr ClipPower.app` once before opening it normally.
+            See the README for setup and usage.

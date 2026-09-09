@@ -13,6 +13,11 @@ settings:
     ONLY_ACTIVE_ARCH: YES
     ENABLE_HARDENED_RUNTIME: YES
     CODE_SIGN_STYLE: Automatic
+    # 默认值；发 Release 时 CI 会用 `MARKETING_VERSION=x.y.z` 命令行覆盖成 tag 里的版本号，
+    # 见 .github/workflows/release.yml。Info.plist 用 $(MARKETING_VERSION) 引用它，
+    # 而不是硬编码字符串，这样版本号只有一个来源（git tag），不用每次发布手动同步两处。
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
 
 packages:
   GRDB:

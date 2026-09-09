@@ -1,0 +1,31 @@
+name: Tests
+
+# 每次 push/PR 到 main 都跑单元测试——这是把 GitHub 默认生成的 Swift 模板
+# （swift build / swift test，要求根目录有 Package.swift）换成真正适配本项目的：
+# 本项目是 XcodeGen + Xcode App 项目，没有 Package.swift，原模板每次都会失败。
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: macos-14 # Apple Silicon runner，匹配本项目 arm64-only 的定位
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Run tests
+        run: |
+          xcodebuild \
+            -project ClipPower.xcodeproj \
+            -scheme ClipPower \
+            -configuration Debug \
+            test
