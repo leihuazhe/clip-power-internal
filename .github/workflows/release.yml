@@ -12,10 +12,21 @@ permissions:
 
 jobs:
   build-and-release:
-    runs-on: macos-14 # Apple Silicon runner，匹配本项目 arm64-only 的定位
+    runs-on: macos-15 # Apple Silicon runner，匹配本项目 arm64-only 的定位
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select an Xcode 26.x toolchain
+        # 本机用 Xcode 26.6 生成/维护这个项目，XcodeGen 写出的 project.pbxproj
+        # objectVersion 是 77——只有 Xcode 26.x 系列能读，macos-15 runner 默认的
+        # Xcode 16.4 会报"future Xcode project file format"直接失败。
+        # macos-15 镜像里同时装了好几个 26.x 小版本，挑其中最新的一个选中。
+        run: |
+          xcode="$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+          echo "Using $xcode"
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen

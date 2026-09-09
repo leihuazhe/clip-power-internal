@@ -11,10 +11,19 @@ on:
 
 jobs:
   test:
-    runs-on: macos-14 # Apple Silicon runner，匹配本项目 arm64-only 的定位
+    runs-on: macos-15 # Apple Silicon runner，匹配本项目 arm64-only 的定位
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select an Xcode 26.x toolchain
+        # 见 release.yml 里同样的注释：本机 Xcode 26.6 生成的项目文件格式
+        # 只有 Xcode 26.x 系列能读，runner 默认的 16.4 会直接读不了这个项目。
+        run: |
+          xcode="$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)"
+          echo "Using $xcode"
+          sudo xcode-select -s "$xcode"
+          xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
