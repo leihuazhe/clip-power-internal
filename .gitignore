@@ -1,0 +1,12 @@
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.build/
+.swiftpm/
+
+# JetBrains IDE (IntelliJ/AppCode) project files
+.idea/
+
+# macOS
+.DS_Store
