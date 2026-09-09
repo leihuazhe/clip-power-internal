@@ -50,26 +50,29 @@ struct LibraryView: View {
         NavigationSplitView {
             List(selection: $sidebarSelection) {
                 Label("全部片段", systemImage: "doc.on.clipboard").tag(SidebarItem.all)
-                Label("回收站", systemImage: "trash").tag(SidebarItem.trash)
                 Label("导入/导出", systemImage: "square.and.arrow.up.on.square").tag(SidebarItem.importExport)
+                Label("回收站", systemImage: "trash").tag(SidebarItem.trash)
                 Label("设置", systemImage: "gearshape").tag(SidebarItem.settings)
             }
             .navigationSplitViewColumnWidth(min: 140, ideal: 160)
         } content: {
-            switch sidebarSelection {
-            case .trash:
-                TrashView(viewModel: trashViewModel)
-            case .settings:
-                SettingsView(viewModel: settingsViewModel)
-            case .importExport:
-                ImportExportView(viewModel: importExportViewModel, showsCloseButton: false)
-            default:
-                SnippetListView(
-                    snippets: libraryViewModel.snippets,
-                    selection: $listSelection,
-                    searchText: $libraryViewModel.searchText
-                )
+            Group {
+                switch sidebarSelection {
+                case .trash:
+                    TrashView(viewModel: trashViewModel)
+                case .settings:
+                    SettingsView(viewModel: settingsViewModel)
+                case .importExport:
+                    ImportExportView(viewModel: importExportViewModel, showsCloseButton: false)
+                default:
+                    SnippetListView(
+                        snippets: libraryViewModel.snippets,
+                        selection: $listSelection,
+                        searchText: $libraryViewModel.searchText
+                    )
+                }
             }
+            .navigationSplitViewColumnWidth(min: 320, ideal: 420, max: 560)
         } detail: {
             switch sidebarSelection {
             case .trash, .settings, .importExport:
