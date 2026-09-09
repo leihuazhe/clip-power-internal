@@ -67,8 +67,9 @@ jobs:
           cp -R "$app" "$staging/"
           ln -s /Applications "$staging/Applications"
 
+          # 每个 run 步骤默认工作目录就是 $GITHUB_WORKSPACE，hdiutil 用相对路径
+          # 生成的 dmg 已经落在这里了，不需要（也不能）再 mv 一次到它自己。
           hdiutil create -volname "ClipPower" -srcfolder "$staging" -ov -format UDZO "$dmg"
-          mv "$dmg" "$GITHUB_WORKSPACE/"
           echo "dmg_name=$dmg" >> "$GITHUB_OUTPUT"
         id: dmg
 
