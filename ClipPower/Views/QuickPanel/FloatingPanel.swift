@@ -11,6 +11,7 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
     var onMoveUp: (() -> Void)?
     var onEscape: (() -> Void)?
     var onTabKey: (() -> Void)?
+    var onReturn: (() -> Void)?
 
     private var keyMonitor: Any?
 
@@ -72,7 +73,11 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
     private func installKeyMonitorIfNeeded() {
         guard keyMonitor == nil else { return }
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self, self.isVisible else { return event }
+            // 必须判 `isKeyWindow` 而不是 `isVisible`：这是个 App 级的本地监听器，
+            // 只要浮层还开着就会拦截本 App **所有**窗口的按键——如果只判可见性，
+            // 浮层开着的同时用户在管理窗口里操作，管理窗口的方向键/回车/Esc 会被
+            // 这里悄悄吃掉（比如新建片段表单里按 Esc 关不掉）。
+            guard let self, self.isKeyWindow else { return event }
             switch event.keyCode {
             case 125: // ↓
                 self.onMoveDown?()
@@ -85,6 +90,15 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
                 return nil
             case 48: // Tab
                 self.onTabKey?()
+                return nil
+            case 36, 76: // Return / 小键盘 Enter
+                // 回车也在窗口级别处理，不再依赖搜索框的 `.onSubmit`。
+                // 之前两次"选好内容按回车没反应"的 bug 都是同一个根因：
+                // `.onSubmit` 要求搜索框真正拿到键盘第一响应者，而这在浮层
+                // 首次呼出等时序下并不保证；方向键一直正常恰恰是因为它走的是
+                // 这个窗口级监听。放到这里之后，回车和方向键的可靠性彻底一致。
+                // 事件被吃掉（返回 nil），所以不会和 `.onSubmit` 重复触发。
+                self.onReturn?()
                 return nil
             default:
                 return event

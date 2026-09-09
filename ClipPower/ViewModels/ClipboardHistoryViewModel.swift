@@ -12,6 +12,13 @@ final class ClipboardHistoryViewModel: ObservableObject {
         }
     }
     @Published private(set) var results: [ClipboardHistoryItem] = []
+    /// 分组结果**缓存成存储属性**，只在 `results` 变化时重算一次。
+    ///
+    /// 之前它是计算属性，而 SwiftUI 的 body 在**任何** `@Published` 变化时都会重算——
+    /// 包括每按一次方向键改 `selectedIndex`。于是每次按键都要把全部（实测 192）条
+    /// 重新分一遍桶，按住方向键连按时明显卡顿。分组只取决于 `results`，和选中项无关，
+    /// 所以缓存是等价的，按键路径上的成本从 O(n × 日期计算) 降到 0。
+    @Published private(set) var groupedResults: [RowSection<ClipboardHistoryItem>] = []
     @Published var selectedIndex: Int = 0
 
     private let store: ClipboardHistoryStore
@@ -26,13 +33,11 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
     func reload() {
         results = (try? store.search(searchText)) ?? []
+        // 分组按"今天/昨天/本月/更早"打标签，`results` 已经按时间倒序，不重新排序。
+        // 每项都带上它在 `results` 里的真实下标，视图不需要（也不允许）再反查——
+        // 原因见 `IndexedRow` 的注释。
+        groupedResults = DateSectionGrouping.grouped(results.indexedRows, dateForItem: { $0.element.createdAt })
         selectedIndex = 0
-    }
-
-    /// 按"今天/昨天/本月/更早"分组，供浮层左侧列表展示；`results` 已经按时间倒序，
-    /// 分组只是打标签，不重新排序。
-    var groupedResults: [(title: String, items: [ClipboardHistoryItem])] {
-        DateSectionGrouping.grouped(results, dateForItem: { $0.createdAt })
     }
 
     var selectedItem: ClipboardHistoryItem? {
@@ -51,7 +56,12 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
     func confirmSelection() {
         guard results.indices.contains(selectedIndex) else { return }
-        onPaste?(results[selectedIndex])
+        let item = results[selectedIndex]
+        // 用过就排到最前面（对标 `QuickPanelViewModel` 里粘贴片段时记 usage 的做法）。
+        // 这里不顺手 reload：粘贴的同时浮层就关掉了，下次呼出走 `reset()` 会重新查一遍，
+        // 没必要在关闭瞬间白拉一次全量数据。
+        try? store.touch(id: item.id)
+        onPaste?(item)
     }
 
     func delete(_ item: ClipboardHistoryItem) {

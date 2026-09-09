@@ -40,6 +40,16 @@ final class ClipPowerPanelViewModel: ObservableObject {
         }
     }
 
+    /// 回车确认（由 `FloatingPanel` 的窗口级按键监听路由过来，不走搜索框的 `.onSubmit`）。
+    func confirmSelection() {
+        switch activeTab {
+        case .snippets:
+            snippetsViewModel.confirmSelection()
+        case .clipboardHistory:
+            clipboardHistoryViewModel.confirmSelection()
+        }
+    }
+
     /// 面板重新打开时调用：定位到指定 Tab，并把两个子 ViewModel 的搜索状态都重置。
     func present(defaultTab: ClipPowerPanelTab) {
         activeTab = defaultTab

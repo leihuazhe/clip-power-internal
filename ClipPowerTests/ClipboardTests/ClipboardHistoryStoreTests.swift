@@ -90,6 +90,35 @@ final class ClipboardHistoryStoreTests: XCTestCase {
         XCTAssertEqual(results.first?.textContent, "hello world")
     }
 
+    func testTouchMovesItemToFront() throws {
+        let store = try makeStore()
+        _ = try store.record(text("a"))
+        Thread.sleep(forTimeInterval: 0.01)
+        _ = try store.record(text("b"))
+        Thread.sleep(forTimeInterval: 0.01)
+        _ = try store.record(text("c"))
+        XCTAssertEqual(try store.fetchRecent().first?.textContent, "c", "前置条件：最新的是 c")
+
+        let target = try store.fetchRecent().first { $0.textContent == "a" }!
+        Thread.sleep(forTimeInterval: 0.01)
+        try store.touch(id: target.id)
+
+        let recent = try store.fetchRecent()
+        XCTAssertEqual(recent.first?.textContent, "a", "用过的那条应该被排到最前面")
+        XCTAssertEqual(recent.count, 3, "只是重排，不应该新增或删除记录")
+        XCTAssertEqual(recent.first?.id, target.id, "应该是同一条记录被挪到前面，不是新建的")
+    }
+
+    func testTouchOnUnknownIdIsNoOp() throws {
+        let store = try makeStore()
+        _ = try store.record(text("a"))
+
+        try store.touch(id: "does-not-exist")
+
+        XCTAssertEqual(try store.count(), 1)
+        XCTAssertEqual(try store.fetchRecent().first?.textContent, "a")
+    }
+
     func testDeleteRemovesSingleItem() throws {
         let store = try makeStore()
         _ = try store.record(text("keep"))

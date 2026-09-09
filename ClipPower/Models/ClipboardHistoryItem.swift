@@ -40,11 +40,13 @@ struct ClipboardHistoryItem: Identifiable, Codable, Sendable, Equatable {
         self.createdAt = createdAt
     }
 
-    /// 列表行/搜索里用的简短文字描述。
+    /// 列表行用的简短文字描述。文本内容会先截断到展示上限——列表行只显示一行，
+    /// 而调用方还要对它做换行符替换这类 O(n) 变换，拿整条几万字符的内容来做没有意义
+    /// （见 `DisplayLimit` 的注释）。
     var displayTitle: String {
         switch kind {
         case .text:
-            return textContent ?? ""
+            return (textContent ?? "").truncatedForDisplay(limit: DisplayLimit.rowTitle)
         case .image:
             if let imageWidth, let imageHeight {
                 return localizedFormat("imageDimensionsFormat", imageWidth, imageHeight)

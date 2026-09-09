@@ -4,6 +4,10 @@ import AppKit
 struct ClipboardHistoryView: View {
     @ObservedObject var viewModel: ClipboardHistoryViewModel
     @FocusState private var isSearchFocused: Bool
+    /// 「清空」是不可撤销的批量删除，需要二次确认。浮层是 `.nonactivatingPanel` 的
+    /// 无边框窗口，弹 `.alert` 在这种窗口上表现不稳定，所以用"点一次变成确认态、
+    /// 再点一次才真正执行"的行内两步确认，不引入额外窗口。
+    @State private var isConfirmingClear = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,10 +19,24 @@ struct ClipboardHistoryView: View {
                     .focused($isSearchFocused)
                     .onSubmit { viewModel.confirmSelection() }
                 if !viewModel.results.isEmpty {
-                    Button("清空") { viewModel.clearAll() }
+                    if isConfirmingClear {
+                        Button("确认清空？") {
+                            viewModel.clearAll()
+                            isConfirmingClear = false
+                        }
                         .font(.caption)
                         .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.red)
+                        Button("取消") { isConfirmingClear = false }
+                            .font(.caption)
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Button("清空") { isConfirmingClear = true }
+                            .font(.caption)
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .padding(14)
@@ -50,6 +68,9 @@ struct ClipboardHistoryView: View {
             DispatchQueue.main.async {
                 isSearchFocused = true
             }
+            // 每次浮层重新呼出都回到未确认状态，避免上次点了"清空"没确认就关掉面板，
+            // 下次一打开还停在"确认清空？"上、一不小心就点掉了。
+            isConfirmingClear = false
         }
     }
 
@@ -72,26 +93,31 @@ struct ClipboardHistoryView: View {
                                     .padding(.horizontal, 14)
                                     .padding(.top, 10)
                                     .padding(.bottom, 4)
-                                ForEach(group.items) { item in
-                                    let index = viewModel.results.firstIndex(of: item) ?? 0
-                                    ClipboardHistoryRow(item: item, isSelected: index == viewModel.selectedIndex)
-                                        .id(index)
-                                        .contentShape(Rectangle())
-                                        .onTapGesture {
-                                            viewModel.selectRow(at: index)
-                                            viewModel.confirmSelection()
-                                        }
+                                ForEach(group.items) { row in
+                                    ClipboardHistoryRow(
+                                        item: row.element,
+                                        isSelected: row.index == viewModel.selectedIndex
+                                    )
+                                    .id(row.id)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        viewModel.selectRow(at: row.index)
+                                        viewModel.confirmSelection()
+                                    }
                                 }
                             }
                         }
                         .padding(.vertical, 6)
                     }
                     // 见 QuickPanelView 里同样的注释：没有这个的话，选中项被方向键移出
-                    // 可见区域时，看起来就像高亮块直接消失了。
-                    .onChange(of: viewModel.selectedIndex) { newIndex in
-                        withAnimation(.easeOut(duration: 0.12)) {
-                            proxy.scrollTo(newIndex, anchor: .center)
-                        }
+                    // 可见区域时，看起来就像高亮块直接消失了。滚动目标用条目自己的 id
+                    // （和 ForEach 的身份、行上的 .id() 完全一致），不用下标——下标做
+                    // 视图身份会在列表重排时让 SwiftUI 把行认错。也故意不包 withAnimation：
+                    // 快速连按方向键时，动画过渡期配合 LazyVStack 的行回收容易出现
+                    // "上一行还没退场、下一行已经出场"的重叠帧。
+                    .onChange(of: viewModel.selectedIndex) { _ in
+                        guard let id = viewModel.selectedItem?.id else { return }
+                        proxy.scrollTo(id, anchor: .center)
                     }
                 }
             }
@@ -124,7 +150,7 @@ private struct ClipboardHistoryRow: View {
         case .text:
             Image(systemName: "doc.plaintext").foregroundStyle(.secondary)
         case .image:
-            if let data = item.imageData, let nsImage = NSImage(data: data) {
+            if let nsImage = ClipboardImageCache.image(for: item) {
                 Image(nsImage: nsImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -168,14 +194,23 @@ private struct ClipboardDetailPane: View {
     private func contentPreview(for item: ClipboardHistoryItem) -> some View {
         switch item.kind {
         case .text:
-            ScrollView {
-                Text(item.textContent ?? "")
-                    .font(.system(size: 18))
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            let full = item.textContent ?? ""
+            VStack(alignment: .leading, spacing: 6) {
+                ScrollView {
+                    // 只渲染截断后的部分——完整内容仍然会被完整粘贴，这里纯粹是预览。
+                    Text(full.truncatedForDisplay(limit: DisplayLimit.preview))
+                        .font(.system(size: 18))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                if full.exceedsDisplayLimit(DisplayLimit.preview) {
+                    Text("预览已截断，粘贴时仍是完整内容")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
         case .image:
-            if let data = item.imageData, let nsImage = NSImage(data: data) {
+            if let nsImage = ClipboardImageCache.image(for: item) {
                 Image(nsImage: nsImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)

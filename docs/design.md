@@ -299,6 +299,102 @@ M5（视觉打磨，调用 `design-consultation` skill 产出正式视觉规范�
 1. **重启逻辑有竞态，导致新进程压根没起来**：最初写法是 `NSWorkspace.shared.openApplication(...) { _, _ in }` 后紧跟着立刻 `NSApp.terminate(nil)`。`openApplication` 底层是一次到 Launch Services 的异步 XPC 往返，当前进程如果在这次往返真正处理完之前就退出，拉起新进程的请求会直接被丢弃——实测复现了（`ps aux` 看不到任何新进程）。修复：把 `terminate` 挪到 `openApplication` 的 completion handler 里面，等这次请求真正处理完之后再退出。
 2. **单元测试把 `ClipPower.app` 自己当 test host 跑，首次启动的静默重启逻辑在测试进程里被触发，直接把测试宿主进程杀了**：`xcodebuild test` 报"测试运行器过早退出"。根因是 `ClipPowerTests` 的 macOS 单测默认拿 `ClipPower.app` 本身当宿主进程启动，`AppDelegate.applicationDidFinishLaunching` 在这个上下文里也会真的跑一遍——这台机器是第一次跑这段新代码，还没存过语言偏好，于是触发了"首次启动→写偏好→重启→terminate"这条路径，而重启一个新进程对正在等待连接的 XCTest 驱动毫无意义，`terminate` 反而直接把测试宿主杀了。修复：`AppLanguageManager.isRunningTests`（检查 `ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"]`）跳过这条路径，测试环境下直接走正常启动流程，语言解析退化成"这次跑测试就用默认 `.en`，不落盘、不重启"。
 
+### 剪贴板交互全面审查（用户反馈"用起来还是有问题"后做的一次系统性排查）
+
+用户报告了三个现象：高亮块不跟着方向键移动、出现两行同时高亮（有截图）、选中后按 Enter 输出的不是选中那条。前两次针对症状的猜测性修复（加自动滚动、去掉动画）都没有真正解决，所以这次把整条链路（`ClipboardMonitor` → `ClipboardHistoryStore` → `ClipboardHistoryViewModel` → `ClipboardHistoryView` → `FloatingPanel` → `PasteSimulator` → `AppDelegate`）完整过了一遍。查出 5 个问题，其中 3 个是真 bug：
+
+**1. 视图里用 `firstIndex(of:) ?? 0` 反查下标（根因，最严重）**
+
+两个浮层列表里每一行的下标都是这么来的：
+```swift
+let index = viewModel.results.firstIndex(of: item) ?? 0
+QuickPanelRow(snippet: item, isSelected: index == viewModel.selectedIndex)
+```
+问题在于列表是 `LazyVStack`，**行的 body 是延迟求值的**——求值时机可能晚于 `groupedResults` 被捕获的那一帧。中间 `results` 一旦被 `reload()` 换过一轮（搜索文本变化、`reset()`、条目被删），闭包捕获的旧 `item` 就不在新 `results` 里了，反查返回 `nil`，而 `?? 0` 这个兜底让**所有反查失败的行都算成"第 0 项"**：
+
+- 多行同时满足 `isSelected` → **多行同时高亮**（用户截图里"curl --request GET..."和"cars-search"两行同时是蓝色，正是这个）
+- 点击/回车都用这个错误下标 → **粘贴的永远是 `results[0]`**，跟看起来选中的那一行无关
+
+附带还有性能问题：192 条内容时每次渲染是 O(n²) 次 `Equatable` 比较，图片条目要逐字节比 `Data`。
+
+修复：新增 `IndexedRow<Element: Identifiable>`（`ClipPower/Models/IndexedRow.swift`），让 `groupedResults` 在**同一次快照**里就把真实下标和元素绑在一起返回，视图直接用 `row.index`，不再反查。同时把行的 `.id()` 从下标改成元素自己的 id（`IndexedRow.id` 转发 `element.id`），这样 `ForEach` 的身份、`.id()` 标记、`ScrollViewReader` 的滚动目标三者完全一致——用下标做视图身份会在列表重排时让 SwiftUI 把行认错，是另一个隐患。补了回归测试 `testGroupedResultsCarryIndicesThatMatchResults`，跨多个日期分组断言下标唯一且指回同一项。
+
+**2. 粘贴 20 秒后静默清空用户剪贴板**
+
+`PasteSimulator.commitPaste` 里有"粘贴 N 秒后，若剪贴板没被别人改过就清空它"的逻辑。这个最早是为敏感内容加的，但 V7 之后软隐藏/加密隐藏内容改走 `typeDirectly`（完全不碰剪贴板）——**真正需要保护的路径已经不经过这里了**。剩下会走到 `commitPaste` 的只有「公开片段」和「剪贴板历史条目」：前者按定义就不敏感，后者是用户主动挑出来要放进剪贴板的。于是这个逻辑退化成纯副作用：用户粘完想再手动 ⌘V 一次，会发现剪贴板莫名空了。删掉。
+
+**3. 浮层开着时会吃掉管理窗口的按键**
+
+`FloatingPanel` 用 `NSEvent.addLocalMonitorForEvents` 拦截方向键/Esc/Tab，但守卫条件写的是 `self.isVisible`。这是个 **App 级**监听器，所以只要浮层还开着，本 App **所有**窗口的这些按键都会被它吃掉（例如管理窗口的新建片段表单里按 Esc 关不掉）。改判 `self.isKeyWindow`。
+
+**4. Enter 可靠性硬化（预防性，根治之前反复出现两次的同类 bug）**
+
+回车原来只走搜索框的 `.onSubmit`，这要求搜索框真正拿到键盘第一响应者——而这在浮层首次呼出等时序下并不保证（这正是之前两次"选好内容按回车没反应"的根因；方向键一直正常，恰恰因为它走的是窗口级监听）。把 Return/小键盘 Enter 也放进 `FloatingPanel` 的窗口级监听（`onReturn` → `ClipPowerPanelViewModel.confirmSelection()` 路由到当前 Tab），回车和方向键的可靠性彻底一致，不再依赖焦点状态。因为事件被监听器吃掉（返回 `nil`），不会和 `.onSubmit` 重复触发；`.onSubmit` 保留作为监听器未安装时的兜底。
+
+**5. 「清空」按钮无二次确认**
+
+浮层搜索框旁边一个小小的「清空」，一点就不可撤销地删掉全部历史（实测 192 条）。改成"点一次变确认态、再点一次才执行"的行内两步确认——浮层是无边框 `.nonactivatingPanel`，弹 `.alert` 在这种窗口上表现不稳定，所以不用弹窗；且每次重新呼出浮层都回到未确认态，避免上次点了没确认、下次一打开就停在"确认清空？"上被误点。
+
+### App 图标：SwiftUI 手工设计，不依赖外部 AI 生图
+
+用户要求做一个和 ClipPower 主题相关的图标。查了一遍本机可用的设计类 skill（`design-shotgun`/`gstack design` 工具），发现走 AI 生图需要先配置 OpenAI API Key（`~/.gstack/openai.json`），用户明确选择"不配 key，我用 SwiftUI 手工设计"。
+
+设计思路：蓝色三段对角线渐变的 squircle（天蓝 → 蓝 → 深蓝紫，macOS Big Sur+ 风格的方形圆角图标，不依赖 Assets.xcassets，走本项目一直用的"普通 `.icns` 资源"路线）+ 白色剪贴板（本体 + 顶部夹子）+ 黄色渐变闪电，一层对应"Clip"（剪贴板），一层对应"Power"（闪电，也呼应快捷键瞬间呼出的产品体验）。闪电故意比剪贴板画得更大、稍微越出边缘，避免两个图形完全内嵌显得呆板。
+
+技术路径：写一个独立的 SwiftUI View（不在主项目里，临时脚本 `/tmp/clippower-icon/IconRender.swift`），用 `ImageRenderer`（macOS 13+）在纯 `swift` 脚本环境里离线渲染成 1024×1024 PNG——`ImageRenderer.nsImage` 是 `@MainActor` 隔离的 API，脚本顶层代码默认是非隔离上下文，用 `MainActor.assumeIsolated { ... }` 包一层即可（脚本本来就跑在主线程，只是要满足 Swift 6 的隔离检查）。再用系统自带的 `sips` 生成 iconset 要求的 10 个尺寸（`icon_16x16.png` 到 `icon_512x512@2x.png`），`iconutil -c icns` 打成 `AppIcon.icns`，放进 `ClipPower/Resources/`，`Info.plist` 加 `CFBundleIconFile = AppIcon` 引用它——沿用项目最初就定的"不建 Assets.xcassets，直接用 loose `.icns`"的路子，不用改 `project.yml`。
+
+菜单栏状态栏图标（`AppDelegate.setupStatusItem` 里的 `NSImage(systemName: "doc.on.clipboard")`）**没有换成这个彩色图标**——菜单栏图标按 macOS 惯例是单色模板图标（跟随系统深浅色、选中态自动反色），换成彩色 App 图标会破坏这个约定，也会显得比其他菜单栏图标突出。App 图标和菜单栏图标是两个独立的设计位置，各自用各自该用的风格。
+
+中途按用户反馈改过一版：闪电原来带 `.shadow(color: .black.opacity(0.25), ...)`，在 1024px 渲染时看起来还行，但那团模糊阴影在小尺寸/用户实际截图里糊成一片深色，被反馈成"闪电上面的乌云"——去掉了。背景从两段色改成三段色渐变（多插一个中间色阶），层次感更明显，闪电本身也顺手加了一个竖直方向的浅黄→深黄渐变。
+
+### 菜单栏状态栏图标换成单色剪影版
+
+App 图标定下来之后，用户追问"能进 Dock 吗"，追问下去才澄清真实需求：不是要改 `LSUIElement`（那会改变"纯菜单栏工具"的产品形态，属于另一个决策），是想把**菜单栏状态栏图标**从系统 SF Symbol `doc.on.clipboard` 换成新设计的样子。
+
+问了一下要哪种风格：彩色原图缩小 vs 单色剪影 template 图标，用户选了单色剪影——这也是对的选择，`NSStatusItem` 的图标按 macOS 惯例应该是 `isTemplate = true` 的单色图标，系统会根据深浅色菜单栏、鼠标悬停/选中状态自动决定颜色（自动反色），彩色图标做不到这一点，会跟其他系统菜单栏图标格格不入。
+
+实现：另写一个 SwiftUI 视图 `MenuBarIconView`（同一套构图——剪贴板轮廓 + 闪电，去掉渐变和颜色，剪贴板改成描边而不是填充，纯色块在这么小的尺寸下会糊成一团黑方块），用同样的 `ImageRenderer` 离线渲染成 72×72 PNG（对应 18pt @2x 视网膜分辨率），存进 `ClipPower/Resources/StatusIcon.png`。`AppDelegate.statusBarIcon()` 加载它、设 `isTemplate = true`，并**显式**把 `.size` 设成 `18×18pt`——不依赖 AppKit 按位图像素尺寸反推逻辑大小（那样会被当成 72pt 的图标，比菜单栏其它图标大好几倍），加载失败时兜底回退到原来的 SF Symbol。
+
+### 超长内容让界面卡死 11.5 秒（实测定位，不是猜的）
+
+用户反馈"按快了界面卡顿"，而且补充了关键线索："每次到某一条内容那里就卡住了"——说明不是普遍的性能问题，而是**某个特定条目**触发的。
+
+前一轮我先猜"是国际化引入的 `String(localized:)` bundle 查表 + 每项 `Calendar.current` 太贵"，把它们从循环里提出来预算一次。**写了个临时基准实测，证伪了这个假设**：192 条分组一次，旧实现 1.17ms、新实现 1.17ms，毫无变化。于是改成在真实按键路径上插桩（`DispatchQueue.main.async` 排在当前 runloop 之后执行，而 SwiftUI 的视图更新+布局就在这一轮里，两者时间差近似等于"这次按键让主线程忙了多久"），同时打印每次详情栏重建时的文本长度。日志立刻给出答案：
+
+```
+[PERF] 详情栏重建，文本长度 39872
+[PERF] ↓ 按键→渲染完成 11526.8 ms      ← 11.5 秒
+[PERF] ↓ 按键→渲染完成 18.7 ms         ← 其他条目都是 15~40ms
+```
+
+根因：**SwiftUI 的 `Text` 没有惰性布局**。详情栏把整条内容原样塞进 `ScrollView { Text(...).textSelection(.enabled) }`，于是 SwiftUI 要为全部 39872 个字符做完整排版，`.textSelection(.enabled)` 还要为每个字形建立选择几何。而预览区只有 ~220pt 高，肉眼最多看到几百字符——其余 3.9 万字符的排版成本全是白烧。
+
+修复（`ClipPower/Services/DisplayTruncation.swift`）：预览只渲染前 `DisplayLimit.preview`（2000）字符，列表行标题只取前 `DisplayLimit.rowTitle`（200）字符——行标题那条尤其必要，因为调用方还要对它做换行符替换这类 O(n) 变换，而行 body 会被反复求值。被截断时界面上显示"预览已截断，粘贴时仍是完整内容"，避免用户误以为内容只有这么多。**粘贴/导出/搜索/去重走的永远是完整内容**，这条边界有单元测试守着（断言原字符串长度未被改动）。Snippets 面板的内容预览有完全相同的隐患（长片段一样会卡死），一并修了。
+
+顺带两个同源的渲染成本：
+- **图片重复解码**：`NSImage(data:)` 每次都真的解一遍 PNG，而行 body / 详情栏在滚动和选中变化时反复求值——选中一张图后每按一次方向键都要完整重解一次。加了 `ClipboardImageCache`（`NSCache`，内存紧张时系统自动回收，丢了只是重解一次，无正确性问题）。
+- **分组结果每次渲染重算**：`groupedResults` 原来是计算属性，而 SwiftUI 的 body 在**任何** `@Published` 变化时都会重算——包括每按一次方向键改 `selectedIndex`。分组只取决于 `results`，和选中项无关，所以改成在 `reload()` 里算一次存起来。这一项实测只值 1.17ms（不是卡顿主因），但按键路径上的无谓开销该去掉。
+
+### 粘贴过的条目排到最前面
+
+用户要求：在浮层里回车粘贴某条剪贴板历史后，把它排到列表最前面（最近使用优先）。
+
+这件事和前面"反复粘贴同一条"的死循环看着矛盾，其实不冲突——那个 bug 的真正问题是**高亮行和实际粘贴的条目不一致**（`?? 0` 反查兜底导致），而不是"被顶到最前"本身。反查修掉之后，两者永远一致，"最近使用排最前 + 重新呼出时默认选中第一项"就是自洽的：连着按回车会重复粘贴最近用过的那条，这正是"最近使用优先"应有的语义。
+
+实现选择：新增 `ClipboardHistoryStore.touch(id:)`，在 `ClipboardHistoryViewModel.confirmSelection()` 里显式调用（和 `QuickPanelViewModel` 粘贴片段时调 `store.recordUsage` 对称）。**没有**改成"去掉 `suppressNextChange`、让剪贴板监控顺便把它记一遍"——那样有三个问题：① 依赖 0.5s 轮询，时机不确定；② 语义上是在假装"用户复制了东西"，而用户其实是在粘贴；③ 粘贴图片/文件时会白白把剪贴板重新读一遍、图片再编码一次 PNG。
+
+字段选择：直接改 `createdAt`，不新增 `lastUsedAt` 列。因为这张表的排序和日期分组（今天/昨天/本月/更早）全以 `createdAt` 为准，而 V7 的去重逻辑本来就已经在"同样内容再被复制一次"时把它改成当前时间了——这个字段的语义早就是"最后一次见到这份内容的时间"。沿用同一字段能和去重保持一致，代价是详情里的"记录于"显示的是最后一次使用时间而非首次复制时间；对剪贴板历史这个场景可以接受，也避免了一次 schema 迁移。
+
+### 剪贴板历史"反复粘贴同一条"的自我循环
+
+另一个独立的真 bug：用户不断按快捷键调出剪贴板历史、不选择直接按 Enter，结果反复粘贴的都是同一条旧内容。
+
+根因不是"粘贴错了"，是一个自我循环：粘贴剪贴板历史里的旧内容时，必须先把它写回系统剪贴板（⌘V 本身就是读剪贴板），而我们自己的 `ClipboardMonitor` 每 0.5s 轮询 `changeCount`，会把这次写入当成一次**新的复制事件**又记一遍——按 V7 的全局去重逻辑，这条历史被"挪到最前面"。再加上每次重新打开面板都会 `reset()` 把 `selectedIndex` 归零，于是形成死循环：打开 → 不选 → 粘贴 `results[0]` → 它被顶到最前 → 再打开 → 第一项还是它 → 再粘贴同一条。
+
+修复：`ClipboardMonitor` 新增 `suppressNextChange()`，在 `AppDelegate` 完成一次"重新粘贴历史条目"的模拟粘贴之后立刻调用，把监控内部记录的 `lastChangeCount` 同步到最新值。因为写剪贴板、发按键、调 `suppressNextChange` 全在主线程上同步完成，轮询的 `Timer` 不可能插在中间，所以这个同步是可靠的。
+
+---
+
 顺带修了两个因为文案变成"运行时才能确定"而暴露出的测试脆弱点：`DateSectionGroupingTests`/`QuickPanelViewModelTests` 原来直接断言硬编码中文字面量（"今天"/"昨天"），现在 `DateSectionGrouping.title(for:)` 会按运行环境语言解析，测试机的语言不一定是中文——改成断言 `String(localized: "今天")`，跟生产代码走同一条本地化解析路径，不再硬编码某个语言的具体文案。
 
 ### 导出兼容 Raycast 格式

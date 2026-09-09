@@ -70,15 +70,17 @@ struct QuickPanelView: View {
                                     .padding(.horizontal, 14)
                                     .padding(.top, 10)
                                     .padding(.bottom, 4)
-                                ForEach(group.items) { snippet in
-                                    let index = viewModel.results.firstIndex(of: snippet) ?? 0
-                                    QuickPanelRow(snippet: snippet, isSelected: index == viewModel.selectedIndex)
-                                        .id(index)
-                                        .contentShape(Rectangle())
-                                        .onTapGesture {
-                                            viewModel.selectRow(at: index)
-                                            viewModel.confirmSelection()
-                                        }
+                                ForEach(group.items) { row in
+                                    QuickPanelRow(
+                                        snippet: row.element,
+                                        isSelected: row.index == viewModel.selectedIndex
+                                    )
+                                    .id(row.id)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        viewModel.selectRow(at: row.index)
+                                        viewModel.confirmSelection()
+                                    }
                                 }
                             }
                         }
@@ -86,11 +88,13 @@ struct QuickPanelView: View {
                     }
                     // 方向键移动选中项时，选中的行可能被滚出可见区域——看起来就像
                     // "高亮块消失了"，而不是真的没跟着移动。用 ScrollViewReader 让
-                    // 选中项始终滚动到可见范围内。
-                    .onChange(of: viewModel.selectedIndex) { newIndex in
-                        withAnimation(.easeOut(duration: 0.12)) {
-                            proxy.scrollTo(newIndex, anchor: .center)
-                        }
+                    // 选中项始终滚动到可见范围内。滚动目标用片段自己的 id（和 ForEach
+                    // 的身份、行上的 .id() 一致），不用下标。也故意不包 withAnimation：
+                    // 快速连按方向键时，动画过渡期配合 LazyVStack 的行回收容易出现
+                    // "上一行还没退场、下一行已经出场"的重叠帧。
+                    .onChange(of: viewModel.selectedIndex) { _ in
+                        guard let id = viewModel.selectedSnippet?.id else { return }
+                        proxy.scrollTo(id, anchor: .center)
                     }
                 }
             }
@@ -176,11 +180,21 @@ private struct QuickPanelDetailPane: View {
             }
             .frame(maxWidth: .infinity, minHeight: 80, alignment: .center)
         } else {
-            ScrollView {
-                Text(snippet.plainContent ?? "")
-                    .font(.system(size: 18))
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+            // 同剪贴板历史详情栏：`Text` 没有惰性布局，长内容会卡死界面，
+            // 预览只渲染截断后的部分（粘贴仍是完整内容）。见 `DisplayLimit` 注释。
+            let full = snippet.plainContent ?? ""
+            VStack(alignment: .leading, spacing: 6) {
+                ScrollView {
+                    Text(full.truncatedForDisplay(limit: DisplayLimit.preview))
+                        .font(.system(size: 18))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                if full.exceedsDisplayLimit(DisplayLimit.preview) {
+                    Text("预览已截断，粘贴时仍是完整内容")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }

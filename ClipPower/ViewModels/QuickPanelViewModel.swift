@@ -13,6 +13,10 @@ final class QuickPanelViewModel: ObservableObject {
         }
     }
     @Published private(set) var results: [Snippet] = []
+    /// 分组结果缓存成存储属性，只在 `results` 变化时重算——理由同
+    /// `ClipboardHistoryViewModel.groupedResults` 的注释（计算属性会让每次按方向键
+     /// 都把全部条目重新分一遍桶，连按时卡顿）。
+    @Published private(set) var groupedResults: [RowSection<Snippet>] = []
     @Published var selectedIndex: Int = 0
     @Published private(set) var isRevealing = false
     @Published var errorMessage: String?
@@ -45,13 +49,13 @@ final class QuickPanelViewModel: ObservableObject {
                 return lhs.offset < rhs.offset
             }
             .map(\.element)
+        // 按"今天/昨天/本月/更早"分组，组内顺序和 `results` 保持一致；每项都带上它在
+        // `results` 里的真实下标，视图不需要（也不允许）再反查——见 `IndexedRow` 注释。
+        groupedResults = DateSectionGrouping.grouped(
+            results.indexedRows,
+            dateForItem: { $0.element.lastUsedAt ?? $0.element.createdAt }
+        )
         selectedIndex = 0
-    }
-
-    /// 按"今天/昨天/本月/更早"分组，供浮层左侧列表展示；组内顺序和 `results` 保持一致，
-    /// 所以每一行仍然可以用 `results.firstIndex(of:)` 换算回原来的 selectedIndex。
-    var groupedResults: [(title: String, items: [Snippet])] {
-        DateSectionGrouping.grouped(results, dateForItem: { $0.lastUsedAt ?? $0.createdAt })
     }
 
     var selectedSnippet: Snippet? {

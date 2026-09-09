@@ -34,12 +34,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         openLibrary()
     }
 
+    /// 菜单栏状态栏图标：剪贴板 + 闪电的单色剪影，跟 App 图标同一套构图但去掉了
+    /// 颜色——`isTemplate = true` 让系统只看 alpha 通道，按深浅色菜单栏和选中态
+    /// 自动上色，这样才能跟其他系统菜单栏图标视觉一致（彩色 App 图标直接缩小放
+    /// 这里会不跟随深浅色、选中时也不会反色，格格不入）。显式设 `.size` 而不是让
+    /// AppKit 按位图像素尺寸推断——素材本身按 72×72（对应 36pt @2x）导出，用固定的
+    /// 18pt 逻辑尺寸才能跟菜单栏其它图标（通常 18~20pt）看起来一样大。
+    private static func statusBarIcon() -> NSImage? {
+        guard let url = Bundle.main.url(forResource: "StatusIcon", withExtension: "png"),
+              let image = NSImage(contentsOf: url) else {
+            return NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Clip Power")
+        }
+        image.isTemplate = true
+        image.size = NSSize(width: 18, height: 18)
+        return image
+    }
+
     private func setupStatusItem() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(
-            systemSymbolName: "doc.on.clipboard",
-            accessibilityDescription: "Clip Power"
-        )
+        item.button?.image = Self.statusBarIcon()
+        item.button?.image?.accessibilityDescription = "Clip Power"
 
         let openItem = NSMenuItem(title: String(localized: "打开管理窗口"), action: #selector(openLibrary), keyEquivalent: "")
         openItem.target = self
@@ -153,8 +167,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func performPasteAfterPanelCloses(_ item: ClipboardHistoryItem) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
             PasteSimulator.paste(item)
+            // 粘贴的是已经在历史里的旧内容，别让自己的剪贴板监控把这次写入误当成
+            // "用户又复制了一次"。排到列表最前面这件事由 `ClipboardHistoryStore.touch`
+            // 显式完成，见 `ClipboardMonitor.suppressNextChange` 的注释。
+            self?.clipboardMonitor?.suppressNextChange()
         }
     }
 

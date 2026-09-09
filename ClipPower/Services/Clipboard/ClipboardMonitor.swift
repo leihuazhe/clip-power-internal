@@ -28,6 +28,19 @@ final class ClipboardMonitor {
         timer = nil
     }
 
+    /// 我们自己往系统剪贴板写内容时调用（比如重新粘贴剪贴板历史里的旧条目，
+    /// ⌘V 必须先把内容放回剪贴板）——同步把 `lastChangeCount` 更新到最新值，
+    /// 让下一次轮询不要把这次**自己造成**的变化当成"用户又复制了一次新内容"。
+    ///
+    /// 注意：粘贴后把该条目排到列表最前面是**想要的行为**，但那件事由
+    /// `ClipboardHistoryStore.touch(id:)` 显式完成，不靠这里的监控兜。
+    /// 让监控去顶有三个问题：① 依赖 0.5s 轮询，时机不确定；
+    /// ② 语义上是在假装"用户复制了东西"，而用户其实是在粘贴；
+    /// ③ 粘贴图片/文件时会白白把剪贴板内容重新读一遍、图片再编码一次 PNG。
+    func suppressNextChange() {
+        lastChangeCount = NSPasteboard.general.changeCount
+    }
+
     private func checkPasteboard() {
         let pasteboard = NSPasteboard.general
         guard pasteboard.changeCount != lastChangeCount else { return }

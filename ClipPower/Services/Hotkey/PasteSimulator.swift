@@ -12,15 +12,15 @@ enum PasteSimulator {
     /// 写入剪贴板并模拟 ⌘V。调用前浮层应已用 `.nonactivatingPanel` 关闭，
     /// 确保目标 App 仍是前台，粘贴才能落到正确的输入框里。
     /// 需要 Accessibility 授权，否则 `CGEvent.post` 不会被系统投递给其他进程。
-    static func paste(_ text: String, clearAfter seconds: TimeInterval? = 20) {
+    static func paste(_ text: String) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
-        commitPaste(clearAfter: seconds)
+        commitPaste()
     }
 
     /// 剪贴板历史条目按类型写回剪贴板（文本/图片/文件），再模拟 ⌘V。
-    static func paste(_ item: ClipboardHistoryItem, clearAfter seconds: TimeInterval? = 20) {
+    static func paste(_ item: ClipboardHistoryItem) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
@@ -38,7 +38,7 @@ enum PasteSimulator {
             }
         }
 
-        commitPaste(clearAfter: seconds)
+        commitPaste()
     }
 
     /// 关键词自动展开用：先模拟按 `backspaceCount` 次删除键抹掉已经打出来的触发词，
@@ -86,10 +86,15 @@ enum PasteSimulator {
         }
     }
 
-    private static func commitPaste(clearAfter seconds: TimeInterval?) {
-        let pasteboard = NSPasteboard.general
-        let changeCountAfterWrite = pasteboard.changeCount
-
+    /// 模拟一次 ⌘V。
+    ///
+    /// **故意不再做"粘贴 N 秒后自动清空剪贴板"**：这个行为最早是为敏感内容加的
+    /// （别让刚解锁的密码一直躺在剪贴板里），但现在软隐藏/加密隐藏内容走的是
+    /// `typeDirectly`，压根不碰剪贴板——真正需要保护的路径已经不经过这里了。
+    /// 剩下会走到这里的只有「公开片段」和「剪贴板历史条目」两种：前者本来就不敏感，
+    /// 后者是用户主动挑出来要放进剪贴板的。对这两种内容做自动清空是纯粹的副作用：
+    /// 用户粘完想再手动 ⌘V 一次，会发现剪贴板莫名空了。
+    private static func commitPaste() {
         let source = CGEventSource(stateID: .hidSystemState)
         let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: true)
         let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0x09, keyDown: false)
@@ -97,12 +102,5 @@ enum PasteSimulator {
         keyUp?.flags = .maskCommand
         keyDown?.post(tap: .cghidEventTap)
         keyUp?.post(tap: .cghidEventTap)
-
-        guard let seconds else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-            if pasteboard.changeCount == changeCountAfterWrite {
-                pasteboard.clearContents()
-            }
-        }
     }
 }

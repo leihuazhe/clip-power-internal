@@ -111,6 +111,23 @@ final class ClipboardHistoryStore: Sendable {
         }
     }
 
+    /// 把某条记录标记为"刚刚用过"，效果是把它排到列表最前面。
+    /// 用户在浮层里回车粘贴某条历史后调用。
+    ///
+    /// 直接改 `createdAt` 而不是新增一个 `lastUsedAt` 列：这张表的排序、日期分组
+    /// （今天/昨天/本月/更早）全都以 `createdAt` 为准，而且 V7 的去重逻辑本来就已经在
+    /// "同样内容再被复制一次"时把它改成当前时间了——也就是说这个字段的语义早就是
+    /// "最后一次见到这份内容的时间"，而不是"第一次复制的时间"。沿用同一个字段能和
+    /// 去重保持一致，代价是详情里的"记录于"显示的是最后一次使用时间。
+    func touch(id: String) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "UPDATE clipboardHistoryItem SET createdAt = ? WHERE id = ?",
+                arguments: [Date(), id]
+            )
+        }
+    }
+
     func delete(id: String) throws {
         try dbQueue.write { db in
             _ = try ClipboardHistoryItem.deleteOne(db, key: id)
