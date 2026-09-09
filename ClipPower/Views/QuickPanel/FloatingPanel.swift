@@ -15,9 +15,13 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
     private var keyMonitor: Any?
 
     init(contentView: NSView) {
+        // 不要 `.titled`——即使隐藏了标题文字、设了透明标题栏，styleMask 里带 `.titled`
+        // 仍然会在窗口顶部保留一条方形的系统标题栏区域，盖在 SwiftUI 的圆角裁剪之上，
+        // 导致左右分栏面板的上边两个角看起来是方的。纯 `.borderless` 才能让四个角
+        // 都跟着内容视图的圆角走。
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 640, height: 420),
-            styleMask: [.nonactivatingPanel, .titled, .fullSizeContentView, .borderless],
+            styleMask: [.nonactivatingPanel, .borderless],
             backing: .buffered,
             defer: false
         )
@@ -29,11 +33,12 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
         hasShadow = true
         hidesOnDeactivate = false
         isMovableByWindowBackground = true
-        titleVisibility = .hidden
-        titlebarAppearsTransparent = true
         isReleasedWhenClosed = false
         delegate = self
 
+        contentView.wantsLayer = true
+        contentView.layer?.cornerRadius = 20
+        contentView.layer?.masksToBounds = true
         self.contentView = contentView
     }
 

@@ -139,6 +139,23 @@ final class SnippetStoreTests: XCTestCase {
         XCTAssertTrue(all.contains { $0.visibility == .encryptedHidden })
     }
 
+    func testRecordUsageIncrementsCountAndSetsLastUsedAtWithoutTouchingUpdatedAt() throws {
+        let store = try makeStore()
+        let created = try store.create(Snippet(name: "A"))
+        XCTAssertEqual(created.usageCount, 0)
+        XCTAssertNil(created.lastUsedAt)
+
+        try store.recordUsage(id: created.id)
+        try store.recordUsage(id: created.id)
+
+        let updated = try store.fetchActive().first { $0.id == created.id }
+        XCTAssertEqual(updated?.usageCount, 2)
+        XCTAssertNotNil(updated?.lastUsedAt)
+        // 用小容差比较：GRDB 往返存储 Date 可能有亚毫秒级精度损失，不能用严格相等。
+        let updatedAtDelta = abs((updated?.updatedAt ?? .distantPast).timeIntervalSince(created.updatedAt))
+        XCTAssertLessThan(updatedAtDelta, 0.001, "使用记录不应该改变 updatedAt")
+    }
+
     func testIsKeywordAvailable() throws {
         let store = try makeStore()
         let created = try store.create(Snippet(name: "A", keyword: "taken"))

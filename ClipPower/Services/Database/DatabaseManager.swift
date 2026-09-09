@@ -148,6 +148,48 @@ final class DatabaseManager: Sendable {
                 """)
         }
 
+        // 剪贴板历史支持图片/文件：把单一 content 字段拆成按类型区分的字段。
+        // SQLite 不支持直接改列约束，用"建新表→搬数据→删旧表"的方式迁移。
+        migrator.registerMigration("v3_clipboardHistoryRichContent") { db in
+            try db.execute(sql: "ALTER TABLE clipboardHistoryItem RENAME TO clipboardHistoryItem_old")
+
+            try db.execute(sql: """
+                CREATE TABLE clipboardHistoryItem (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    kind TEXT NOT NULL DEFAULT 'text',
+                    textContent TEXT,
+                    imageData BLOB,
+                    imageWidth INTEGER,
+                    imageHeight INTEGER,
+                    fileURLs TEXT,
+                    byteSize INTEGER,
+                    createdAt REAL NOT NULL
+                )
+                """)
+
+            // fileURLs 在 Swift 模型里是非空的 [String]（不是 [String]?），旧数据没有
+            // 这个字段，必须显式填 '[]' 而不是留 NULL，否则 GRDB 解码这一行就会报错，
+            // 而且是整批一起解码——一行解码失败会导致查询整体返回空，看起来就是
+            // "剪贴板历史全没了"。
+            try db.execute(sql: """
+                INSERT INTO clipboardHistoryItem (id, kind, textContent, fileURLs, createdAt)
+                SELECT id, 'text', content, '[]', createdAt FROM clipboardHistoryItem_old
+                """)
+
+            try db.execute(sql: "DROP TABLE clipboardHistoryItem_old")
+
+            try db.execute(sql: """
+                CREATE INDEX idx_clipboardHistoryItem_createdAt
+                ON clipboardHistoryItem(createdAt DESC)
+                """)
+        }
+
+        // 补丁迁移：修复上面 v3 迁移的疏漏——已经跑过 v3 的机器上，fileURLs 是 NULL，
+        // 解码会报错导致查询整体失败。这里直接补成 '[]'。
+        migrator.registerMigration("v4_backfillClipboardFileURLs") { db in
+            try db.execute(sql: "UPDATE clipboardHistoryItem SET fileURLs = '[]' WHERE fileURLs IS NULL")
+        }
+
         return migrator
     }
 }

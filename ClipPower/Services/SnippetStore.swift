@@ -6,6 +6,11 @@ enum SnippetStoreError: Error, Equatable {
     case notFound
 }
 
+extension Notification.Name {
+    /// 片段被创建/编辑/删除/恢复时发出，`KeywordIndex` 借此知道该刷新关键词缓存了。
+    static let snippetsDidChange = Notification.Name("ClipPower.snippetsDidChange")
+}
+
 /// CRUD / 搜索 / 回收站的数据层 facade，UI 层只通过它访问数据库。
 final class SnippetStore: Sendable {
     let dbQueue: DatabaseQueue
@@ -27,6 +32,7 @@ final class SnippetStore: Sendable {
         } catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
             throw SnippetStoreError.duplicateKeyword
         }
+        postSnippetsDidChange()
         return snippet
     }
 
@@ -41,6 +47,7 @@ final class SnippetStore: Sendable {
         } catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
             throw SnippetStoreError.duplicateKeyword
         }
+        postSnippetsDidChange()
         return snippet
     }
 
@@ -55,6 +62,7 @@ final class SnippetStore: Sendable {
             snippet.updatedAt = now
             try snippet.update(db)
         }
+        postSnippetsDidChange()
     }
 
     func restore(id: String) throws {
@@ -67,12 +75,18 @@ final class SnippetStore: Sendable {
             snippet.updatedAt = Date()
             try snippet.update(db)
         }
+        postSnippetsDidChange()
     }
 
     func permanentlyDelete(id: String) throws {
         try dbQueue.write { db in
             _ = try Snippet.deleteOne(db, key: id)
         }
+        postSnippetsDidChange()
+    }
+
+    private func postSnippetsDidChange() {
+        NotificationCenter.default.post(name: .snippetsDidChange, object: nil)
     }
 
     /// 清理超过保留期的回收站条目，App 启动时调用一次。
@@ -93,8 +107,14 @@ final class SnippetStore: Sendable {
         try dbQueue.read { db in
             try Snippet
                 .filter(Column("isDeleted") == false)
-                .order(Column("updatedAt").desc)
+                .order(Column("updatedAt").desc, Column("rowid").desc)
                 .fetchAll(db)
+        }
+    }
+
+    func fetchByID(_ id: String) throws -> Snippet? {
+        try dbQueue.read { db in
+            try Snippet.fetchOne(db, key: id)
         }
     }
 
@@ -136,7 +156,7 @@ final class SnippetStore: Sendable {
                         OR plainContent LIKE ? ESCAPE '\\'
                         OR tags LIKE ? ESCAPE '\\'
                     )
-                    ORDER BY updatedAt DESC
+                    ORDER BY updatedAt DESC, rowid DESC
                     """,
                 arguments: [pattern, pattern, pattern, pattern]
             )
@@ -148,6 +168,16 @@ final class SnippetStore: Sendable {
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "%", with: "\\%")
             .replacingOccurrences(of: "_", with: "\\_")
+    }
+
+    /// 记录一次"使用"（全局热键浮层里被选中粘贴），不影响 updatedAt（那个只反映内容编辑）。
+    func recordUsage(id: String) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "UPDATE snippet SET usageCount = usageCount + 1, lastUsedAt = ? WHERE id = ?",
+                arguments: [Date(), id]
+            )
+        }
     }
 
     func isKeywordAvailable(_ keyword: String, excludingID: String?) throws -> Bool {

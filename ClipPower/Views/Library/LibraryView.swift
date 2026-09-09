@@ -10,6 +10,7 @@ struct LibraryView: View {
         case all
         case trash
         case settings
+        case importExport
     }
 
     /// 用 `.sheet(item:)` 而不是 `.sheet(isPresented:)` + 单独的 `editingSnippet`，
@@ -50,6 +51,7 @@ struct LibraryView: View {
             List(selection: $sidebarSelection) {
                 Label("全部片段", systemImage: "doc.on.clipboard").tag(SidebarItem.all)
                 Label("回收站", systemImage: "trash").tag(SidebarItem.trash)
+                Label("导入/导出", systemImage: "square.and.arrow.up.on.square").tag(SidebarItem.importExport)
                 Label("设置", systemImage: "gearshape").tag(SidebarItem.settings)
             }
             .navigationSplitViewColumnWidth(min: 140, ideal: 160)
@@ -59,6 +61,8 @@ struct LibraryView: View {
                 TrashView(viewModel: trashViewModel)
             case .settings:
                 SettingsView(viewModel: settingsViewModel)
+            case .importExport:
+                ImportExportView(viewModel: importExportViewModel, showsCloseButton: false)
             default:
                 SnippetListView(
                     snippets: libraryViewModel.snippets,
@@ -68,7 +72,7 @@ struct LibraryView: View {
             }
         } detail: {
             switch sidebarSelection {
-            case .trash, .settings:
+            case .trash, .settings, .importExport:
                 Color.clear
             default:
                 if let id = listSelection, let snippet = libraryViewModel.snippets.first(where: { $0.id == id }) {
@@ -89,7 +93,7 @@ struct LibraryView: View {
             }
         }
         .toolbar {
-            if sidebarSelection != .settings {
+            if sidebarSelection != .settings && sidebarSelection != .importExport {
                 ToolbarItem {
                     Button {
                         isShowingImportExport = true

@@ -226,3 +226,64 @@ M5（视觉打磨，调用 `design-consultation` skill 产出正式视觉规范�
 - 每个 Tab 各自保留自己的搜索框状态/选中项（`QuickPanelViewModel`/`ClipboardHistoryViewModel` 互不干扰），只是纳入了同一个窗口里显示；每次面板重新打开时两个 Tab 的搜索状态都会重置。
 
 实现上：新增 `ClipPowerPanelViewModel`（持有两个子 ViewModel + `activeTab` 状态 + 路由 `moveSelection`/`cycleTab`）、`ClipPowerPanelView`（顶部 Tab 条 + 下方切换显示 `QuickPanelView`/`ClipboardHistoryView` 的内容部分）、`ClipPowerPanelController`（`FloatingPanel` 的薄封装）。原来独立的 `QuickPanelController`/`ClipboardHistoryPanelController` 两个窗口控制器被这一个取代；`FloatingPanel` 基类新增了 `onTabKey` 回调（拦截 keyCode 48 也就是 Tab 键）。
+
+### 热键冲突防抖（用户反馈后补的）
+
+如果用户在设置里把两个热键绑到了同一个键位，系统会把一次按键同时投给两个 handler，`togglePanel` 被连续调用两次——第一次打开面板，第二次立刻判定"已经在目标 Tab"就把它关掉，表现就是面板一闪而过（"秒退"）。修复：`AppDelegate` 加了 300ms 防抖，短时间内的重复触发直接忽略。
+
+### Snippets 面板左右分栏 + 按使用时间排序（对标 Raycast 原生 UI）
+
+参考 Raycast 官方 Snippets/Clipboard History 面板截图重做了两个 Tab 的浮层内容：左边是按"今天/昨天/本月/更早"分组的列表（`DateSectionGrouping` 工具），右边是内容大字预览 + Information 元数据区。同时给 `Snippet` 加了 `usageCount`/`lastUsedAt` 统计（`SnippetStore.recordUsage`，每次在浮层里选中粘贴就 +1、更新最近使用时间，不影响 `updatedAt`），列表默认按最近使用时间排序（没用过的按创建时间）。
+
+**踩过的一个坑**：右侧预览区一开始只挡了 `.encryptedHidden`，忘了 `.softHidden` 也需要打码——这个预览区是方向键选中就自动刷新的，不是用户主动点击"查看"，一旦露出软隐藏内容就等于"选中即看到"，跟隐藏的初衷相悖。修复后两种隐藏可见性在预览区都只显示打码占位，查看/解锁走管理窗口那套需要主动点击的流程。
+
+浮层窗口的四个角一开始有两个是方的，因为 `FloatingPanel` 的 `styleMask` 里带了 `.titled`——即使隐藏了标题栏文字、设了透明标题栏，styleMask 里带 `.titled` 仍然会在窗口顶部保留一条方形的系统标题栏区域盖住圆角。改成纯 `.borderless` + 直接给内容视图的 CALayer 设 `cornerRadius`（20pt）+`masksToBounds`，四个角才真正跟着圆。管理窗口是标准 macOS 标题栏窗口，系统本身就会自动画圆角，没有改。
+
+### 剪贴板历史支持图片/文件 + 关键词自动展开 + 导入 Raycast Snippets
+
+三个独立的新增能力：
+
+1. **剪贴板历史支持图片/文件**：`ClipboardHistoryItem` 从单一 `content: String` 拆成 `kind`（text/image/file）+ 各类型专属字段（`textContent`/`imageData`+`imageWidth`+`imageHeight`/`fileURLs`+`byteSize`），schema 迁移用"建新表→搬数据→删旧表"的方式（SQLite 不支持直接改列约束）。`ClipboardMonitor` 按 **文件 → 图片 → 文本** 的优先级判断剪贴板内容（Finder 复制文件时剪贴板有时也带图标的图片表示，必须先排除文件 URL 再判断图片，用 `NSPasteboard.ReadingOptionKey.urlReadingFileURLsOnly` 精确识别真正的文件 URL，避免把复制的网页链接误判成文件）。`PasteSimulator` 按类型把内容写回剪贴板（`NSImage`/`NSURL` 对象或纯文本）再模拟 `⌘V`。
+2. **关键词自动展开**（对标 Espanso/TextExpander，Raycast 本身也没有）：`TextExpansionMonitor` 用 `NSEvent.addGlobalMonitorForEvents` 只读监听全局按键（不拦截，用户正常输入完全不受影响），维护一个滚动缓冲区，每敲一个字符就用 `KeywordIndex`（内存里的「触发词→片段 id」索引，监听 `.snippetsDidChange` 通知自动刷新，不用手动同步）检查缓冲区末尾是否命中某个触发词，命中就用 `PasteSimulator.replaceTypedText` 模拟退格删掉刚打的触发词、再粘贴替换内容。**加密隐藏的片段不参与**——那需要 Touch ID，不适合在打字时无感触发，软隐藏则正常参与（不需要鉴权）。已知局限（和大多数简单文本替换工具一样）：如果触发词恰好是另一个更长单词的后缀（比如触发词 "gitc"，用户打的是 "logitc"），也会被命中展开，需要自己挑不容易跟普通单词撞在一起的触发词，这是设计上的取舍，不是 bug。
+3. **导入 Raycast 官方 Snippets JSON**：`ImportExportService.importRaycastSnippets`，格式是 `[{ "name", "text", "keyword"? }, ...]` 的纯明文数组（没有可见性/加密概念），全部落库为 `normal` 可见性，冲突处理复用已有的跳过/覆盖/新建副本三种策略。管理窗口「导入/导出」面板里加了单独的入口。
+
+### 两个 V6 引入的 bug
+
+1. **迁移遗漏导致剪贴板历史查询整体失败**：上面 schema 迁移的 `INSERT INTO clipboardHistoryItem (id, kind, textContent, createdAt) SELECT ...` 没有显式给 `fileURLs` 赋值，旧数据这一列全是 `NULL`；但 `ClipboardHistoryItem.fileURLs` 在 Swift 里是非空的 `[String]`（不是 `[String]?`），GRDB 解码遇到 `NULL` 直接抛错——而且 `fetchAll` 是整批一起解码的，只要有一行失败，**整个查询结果都被吞掉**（外层用了 `try?`），表现就是"剪贴板历史一条都没有了"，包括新写入的数据（因为查询本身就没跑成功，不是数据没写进去）。修复：迁移语句显式把 `fileURLs` 填成 `'[]'`；另外加了一个 `v4_backfillClipboardFileURLs` 迁移，把已经跑过旧版 v3 迁移、留下 `NULL` 的机器上的数据直接修复回来。
+2. **第一次呼出浮层时回车不生效**：NSPanel 第一次 `makeKeyAndOrderFront` 时，窗口还没真正变成 key window，SwiftUI 的 `.onAppear` 已经把 `@FocusState` 设过去了，设置不生效——搜索框没拿到真正的键盘第一响应者，回车摸不到 `.onSubmit`；方向键仍然能用是因为那是在窗口级别用 `NSEvent` 本地事件监听的，不需要真正的第一响应者。第二次之后窗口已经"热"了（窗口服务器资源已分配好），就不再有这个时序问题。修复：`QuickPanelView`/`ClipboardHistoryView` 的 `.onAppear` 里把 `isSearchFocused = true` 延迟到下一个 runloop 周期（`DispatchQueue.main.async`）再设。
+
+### 隐藏内容不落地剪贴板 + 剪贴板历史全局去重
+
+两个独立的收尾修正：
+
+1. **软隐藏/加密隐藏内容不再经过系统剪贴板**：之前粘贴任何片段（包括隐藏的）都是走"写剪贴板 + 模拟 ⌘V"，意味着刚解锁的敏感内容会被自己的 `ClipboardMonitor`（或用户机器上别的剪贴板管理器）当成一条新的剪贴板历史又记录下来，等于白隐藏了——加密隐藏的内容尤其讽刺，费了 Touch ID 解锁，转头就以明文形式留在了剪贴板历史里。新增 `PasteSimulator.typeDirectly` / `PasteMethod` 枚举：软隐藏、加密隐藏都改成用 CGEvent 直接模拟键盘输入整段文字（`keyboardSetUnicodeString`），完全不碰 `NSPasteboard`；普通（公开）片段仍然走剪贴板+模拟 ⌘V（兼容性最好，某些应用对直接模拟输入的支持不如响应真实 ⌘V 可靠）。顺手把「关键词自动展开」（`PasteSimulator.replaceTypedText`）也从剪贴板粘贴改成了直接输入，避免每次展开普通片段都污染用户当前的剪贴板内容——这不只是隐藏内容才有意义的改动。
+2. **剪贴板历史去重从"只看上一条"改成"全局去重"**：原来 `ClipboardHistoryStore.record` 只检查是否和最近一条完全相同，如果中间复制过别的内容，同一份内容再复制一次就不会被判重，导致列表里堆出一堆一样的条目（实测截图里 "Zaneyoujie@1314" 连续出现好几次）。改成：不管在历史的哪个位置，只要同类型（文本比文字、图片比字节、文件比路径列表）已经存在完全相同的内容，就直接把那条已有记录的 `createdAt` 更新成现在（效果是"挪到最前面"），不新建重复行。
+
+### 管理窗口新增「导入/导出」侧栏栏目 + 导入结果改为弹窗提示
+
+两个独立的小改动：
+
+1. **侧栏新增独立入口**：`LibraryView` 的 `SidebarItem` 加了 `.importExport`，在侧栏"回收站"和"设置"之间插入"导入/导出"一项，内容区直接渲染 `ImportExportView(showsCloseButton: false)`（常驻栏目不需要"关闭"按钮）。原来菜单栏工具条上的"导入/导出"按钮 + `.sheet` 弹窗入口按用户要求原样保留，两个入口共享同一个 `ImportExportViewModel` 实例，行为完全一致，只是多了一条不需要先点工具条按钮就能到达的路径。
+2. **导入/导出结果从纯文字说明改成 `.alert` 弹窗**：排查用户反馈"导入后没有成功/失败提示，而且导入没成功"时，先加临时 `print` 调试日志+终端直跑复现，结果确认导入本身是成功的（真实 Raycast 导出文件 18 条，17 条导入、1 条因 keyword 冲突被正确跳过，逐条对照 sqlite 数据核实无误）——真正的问题纯粹是 UX：`viewModel.statusMessage` 之前只在面板底部显示一行 `.caption` 小字，很容易被忽略，用户因此误以为"没有提示，也没有导入成功"。修复：`ImportExportView` 去掉底部的行内 caption，改用 `.alert("导入/导出结果", isPresented:)` 弹窗展示同一条 `statusMessage`（绑定方式与 `LibraryView` 现有的错误提示 `.alert` 一致：`Binding` 的 get 判断 `statusMessage != nil`，set 在用户点掉弹窗时把它清空），确保成功/失败/跳过数量以醒目的模态弹窗呈现，而不是容易被忽略的小字。
+
+### 浮层方向键选中高亮"消失"的 bug
+
+用户反馈：在浮层里用上下方向键切换选中项时，被选中行的蓝色高亮块会"消失"，不会跟着移动到新选中的行上。
+
+根因排查：`QuickPanelView`/`ClipboardHistoryView` 左侧列表都是普通 `ScrollView + LazyVStack`，`selectedIndex` 变化本身没问题（`QuickPanelViewModel.moveSelection`/`selectRow` 的逐行 `isSelected = index == viewModel.selectedIndex` 判断是对的），但列表**没有任何自动滚动逻辑**跟 `selectedIndex` 联动。方向键按到列表比较靠下的位置时，新选中的那一行会被移出可视区域——屏幕上看不到任何带蓝色底色的行，视觉上就等同于"高亮块凭空消失了"，而不是真的没跟着移动。
+
+修复：给每一行加 `.id(index)`（`index` 就是 `results.firstIndex(of:)` 换算出来的真实下标，和分组无关），用 `ScrollViewReader` 包一层，`.onChange(of: viewModel.selectedIndex)` 触发时调用 `proxy.scrollTo(newIndex, anchor: .center)`（带一个 120ms 的 `easeOut` 小动画），确保选中行始终自动滚动到可视范围内。`QuickPanelView` 和 `ClipboardHistoryView` 是同一套列表结构，两边都改了同样的逻辑。（注：`.onChange(of:initial:_:)` 双参数闭包版本要 macOS 14+，项目部署目标是 macOS 13，用了单参数的旧版 `onChange(of:) { newValue in }`。）
+
+### 导出兼容 Raycast 格式
+
+之前只做了"导入 Raycast Snippets JSON"这一个方向，用户追问"导出兼容 Raycast 了吗"才发现导出方向一直没做——`ImportExportService.export` 只有我们自己的 `ExportPackage` 格式（带 `formatVersion`/加密信息，是为了保留隐藏能力设计的，Raycast 的纯数组格式装不下这些）。
+
+新增 `ImportExportService.exportRaycastSnippets()`：只导出 `visibility == .normal` 的片段，映射成 `[{name, text, keyword}]` 数组。**故意不包含软隐藏/加密隐藏内容**——Raycast 格式本身没有任何保护机制，把隐藏内容明文写进这种格式里等于绕开隐藏功能直接暴露明文，这是一个安全边界，不是遗漏。UI 上在「导入/导出」面板把原来单独的「从 Raycast 导入」卡片改名成「与 Raycast 互通」，加了一个并排的"导出为 Raycast 格式..."按钮，文案里说明了只导出公开片段的原因。
+
+### 导出"成功"提示比真正保存还早弹出的 bug
+
+加了这个导出按钮之后，用户马上发现一个问题：在系统 `NSSavePanel` 里还没点 Save，"导入/导出结果"弹窗就已经显示"导出成功"/"已导出为 Raycast 格式"了。
+
+根因：`ImportExportViewModel.export()`/`exportRaycastFile()` 在内存里把 JSON 数据生成出来的那一刻，就直接把 `statusMessage` 设成了成功文案；而调用方 `ImportExportView` 的流程是先拿到这份数据，再弹出 `NSSavePanel` 让用户选保存位置——"提示结果"这一步发生在用户真正点击 Save**之前**。数据生成本身几乎是瞬间完成的（纯内存 JSON 编码，不涉及磁盘/网络），所以看起来就是"面板还没出现，成功提示先跳出来了"。这个时序问题其实从最早的 `export()` 实现起就存在，只是之前用一行不起眼的 caption 展示，不容易被注意到；换成醒目的 `.alert` 弹窗后，问题一下就暴露出来了。
+
+修复：把"设置成功文案"这一步从 ViewModel 的 `export`/`exportRaycastFile` 里删掉——这两个方法现在只负责生成数据，失败才设 `statusMessage`（这类错误跟保存面板无关，提前报是对的）。改成 `ImportExportView` 里等 `NSSavePanel.runModal() == .OK` 且 `data.write(to:)` 真正写盘成功之后，才把 `viewModel.statusMessage` 设成功文案；写盘失败会捕获异常改成失败文案；用户在保存面板点 Cancel 则什么提示都不弹（本来就没有产生任何"结果"）。普通导出和 Raycast 格式导出两个入口都这样改了。

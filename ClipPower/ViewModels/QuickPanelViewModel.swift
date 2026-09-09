@@ -20,8 +20,8 @@ final class QuickPanelViewModel: ObservableObject {
     private let store: SnippetStore
     private let encryptionService: SnippetEncryptionService
 
-    /// 由 AppDelegate 注入：确认粘贴文本 / 关闭浮层。
-    var onPaste: ((String) -> Void)?
+    /// 由 AppDelegate 注入：确认粘贴文本（含粘贴方式）/ 关闭浮层。
+    var onPaste: ((String, PasteMethod) -> Void)?
     var onDismiss: (() -> Void)?
 
     init(store: SnippetStore, encryptionService: SnippetEncryptionService = SnippetEncryptionService()) {
@@ -33,8 +33,29 @@ final class QuickPanelViewModel: ObservableObject {
     func reload() {
         // 隐藏条目也会出现在结果里（标题/关键词可搜到），只是内容打码；
         // 加密隐藏的 plainContent 在数据库里本就是 NULL，所以搜不到密文对应的明文。
-        results = (try? store.search(searchText)) ?? []
+        // 按最近使用时间排序（对标 Raycast），从没用过的按创建时间排。
+        let fetched = (try? store.search(searchText)) ?? []
+        // 用原始下标做兜底排序键，保证时间戳完全相同时排序结果依然稳定、可预测
+        // （Swift 的 sorted(by:) 不保证稳定排序，光比时间戳在极端情况下会导致顺序抖动）。
+        results = fetched.enumerated()
+            .sorted { lhs, rhs in
+                let lhsKey = lhs.element.lastUsedAt ?? lhs.element.createdAt
+                let rhsKey = rhs.element.lastUsedAt ?? rhs.element.createdAt
+                if lhsKey != rhsKey { return lhsKey > rhsKey }
+                return lhs.offset < rhs.offset
+            }
+            .map(\.element)
         selectedIndex = 0
+    }
+
+    /// 按"今天/昨天/本月/更早"分组，供浮层左侧列表展示；组内顺序和 `results` 保持一致，
+    /// 所以每一行仍然可以用 `results.firstIndex(of:)` 换算回原来的 selectedIndex。
+    var groupedResults: [(title: String, items: [Snippet])] {
+        DateSectionGrouping.grouped(results, dateForItem: { $0.lastUsedAt ?? $0.createdAt })
+    }
+
+    var selectedSnippet: Snippet? {
+        results.indices.contains(selectedIndex) ? results[selectedIndex] : nil
     }
 
     func moveSelection(by delta: Int) {
@@ -68,16 +89,26 @@ final class QuickPanelViewModel: ObservableObject {
 
     private func paste(_ snippet: Snippet) async {
         switch snippet.visibility {
-        case .normal, .softHidden:
+        case .normal:
             if let content = snippet.plainContent {
-                onPaste?(content)
+                try? store.recordUsage(id: snippet.id)
+                onPaste?(content, .clipboard)
+            }
+        case .softHidden:
+            // 软隐藏/加密隐藏都不走剪贴板：刚"解锁"的敏感内容一旦进了系统剪贴板，
+            // 会被我们自己的 ClipboardMonitor（或用户机器上别的剪贴板管理器）
+            // 又记录成一条明文历史，等于白隐藏了。直接模拟键盘输入，用一次就没了。
+            if let content = snippet.plainContent {
+                try? store.recordUsage(id: snippet.id)
+                onPaste?(content, .direct)
             }
         case .encryptedHidden:
             isRevealing = true
             do {
                 let content = try await encryptionService.reveal(snippet)
                 isRevealing = false
-                onPaste?(content)
+                try? store.recordUsage(id: snippet.id)
+                onPaste?(content, .direct)
             } catch {
                 isRevealing = false
                 errorMessage = "验证失败：\(error.localizedDescription)"

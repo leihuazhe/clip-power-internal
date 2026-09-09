@@ -16,7 +16,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
     private let store: ClipboardHistoryStore
 
-    var onPaste: ((String) -> Void)?
+    var onPaste: ((ClipboardHistoryItem) -> Void)?
     var onDismiss: (() -> Void)?
 
     init(store: ClipboardHistoryStore) {
@@ -27,6 +27,16 @@ final class ClipboardHistoryViewModel: ObservableObject {
     func reload() {
         results = (try? store.search(searchText)) ?? []
         selectedIndex = 0
+    }
+
+    /// 按"今天/昨天/本月/更早"分组，供浮层左侧列表展示；`results` 已经按时间倒序，
+    /// 分组只是打标签，不重新排序。
+    var groupedResults: [(title: String, items: [ClipboardHistoryItem])] {
+        DateSectionGrouping.grouped(results, dateForItem: { $0.createdAt })
+    }
+
+    var selectedItem: ClipboardHistoryItem? {
+        results.indices.contains(selectedIndex) ? results[selectedIndex] : nil
     }
 
     func moveSelection(by delta: Int) {
@@ -41,7 +51,7 @@ final class ClipboardHistoryViewModel: ObservableObject {
 
     func confirmSelection() {
         guard results.indices.contains(selectedIndex) else { return }
-        onPaste?(results[selectedIndex].content)
+        onPaste?(results[selectedIndex])
     }
 
     func delete(_ item: ClipboardHistoryItem) {

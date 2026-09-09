@@ -8,14 +8,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panelController: ClipPowerPanelController?
     private var panelViewModel: ClipPowerPanelViewModel?
     private var clipboardMonitor: ClipboardMonitor?
+    private var keywordIndex: KeywordIndex?
+    private var textExpansionMonitor: TextExpansionMonitor?
     private var lastToggleAt: Date?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        setvbuf(stdout, nil, _IONBF, 0) // 关闭 stdout 缓冲，终端直跑时能实时看到 print 日志
         _ = AppEnvironment.snippetStore // 触发数据库初始化与迁移
         try? AppEnvironment.snippetStore.purgeExpiredTrash()
 
         setupStatusItem()
         setupClipPowerPanel()
+        setupTextExpansion()
+        ensureAccessibilityPermission()
         openLibrary()
     }
 
@@ -53,16 +58,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         let controller = ClipPowerPanelController(viewModel: viewModel)
 
-        snippetsViewModel.onPaste = { [weak self, weak controller] text in
+        snippetsViewModel.onPaste = { [weak self, weak controller] text, method in
             controller?.dismiss()
-            self?.performPasteAfterPanelCloses(text)
+            self?.performPasteAfterPanelCloses(text, method: method)
         }
         snippetsViewModel.onDismiss = { [weak controller] in
             controller?.dismiss()
         }
-        clipboardHistoryViewModel.onPaste = { [weak self, weak controller] text in
+        clipboardHistoryViewModel.onPaste = { [weak self, weak controller] item in
             controller?.dismiss()
-            self?.performPasteAfterPanelCloses(text)
+            self?.performPasteAfterPanelCloses(item)
         }
         clipboardHistoryViewModel.onDismiss = { [weak controller] in
             controller?.dismiss()
@@ -85,6 +90,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func setupTextExpansion() {
+        let index = KeywordIndex(store: AppEnvironment.snippetStore)
+        let monitor = TextExpansionMonitor(store: AppEnvironment.snippetStore, keywordIndex: index)
+        monitor.start()
+        keywordIndex = index
+        textExpansionMonitor = monitor
+    }
+
     /// 面板已打开且当前就在目标 Tab 上 → 关闭（维持"再按一次关闭"的习惯）；
     /// 面板已打开但在另一个 Tab 上 → 切换过去，不关闭；面板没打开 → 打开并定位到目标 Tab。
     private func togglePanel(defaultTab: ClipPowerPanelTab) {
@@ -105,7 +118,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 viewModel.activeTab = defaultTab
             }
         } else {
-            ensureAccessibilityPermission()
             viewModel.present(defaultTab: defaultTab)
             controller.present()
         }
@@ -119,9 +131,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// 浮层用 `.nonactivatingPanel` 从未真正抢占前台，关闭后原 App 已经是前台；
     /// 留一点点延迟确保窗口系统状态切换完毕，再发送模拟粘贴按键。
-    private func performPasteAfterPanelCloses(_ text: String) {
+    private func performPasteAfterPanelCloses(_ text: String, method: PasteMethod) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            PasteSimulator.paste(text)
+            switch method {
+            case .clipboard:
+                PasteSimulator.paste(text)
+            case .direct:
+                PasteSimulator.typeDirectly(text)
+            }
+        }
+    }
+
+    private func performPasteAfterPanelCloses(_ item: ClipboardHistoryItem) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            PasteSimulator.paste(item)
         }
     }
 

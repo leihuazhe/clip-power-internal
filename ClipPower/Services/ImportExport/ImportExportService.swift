@@ -20,6 +20,13 @@ enum ImportExportError: Error {
     case unsupportedFormatVersion(Int)
 }
 
+/// Raycast 官方 Snippets 导出 JSON 的条目格式：`[{ "name", "text", "keyword"? }, ...]`。
+struct RaycastSnippetEntry: Codable {
+    var name: String
+    var text: String
+    var keyword: String?
+}
+
 struct ImportSummary: Equatable, Sendable {
     var imported = 0
     var skipped = 0
@@ -165,6 +172,75 @@ final class ImportExportService: Sendable {
                     return
                 case .duplicateAsNew:
                     snippet.id = UUID().uuidString
+                    snippet.keyword = "\(keyword)-imported"
+                    _ = try store.create(snippet)
+                    summary.duplicated += 1
+                    return
+                }
+            }
+
+            _ = try store.create(snippet)
+            summary.imported += 1
+        } catch {
+            summary.failed += 1
+        }
+    }
+
+    // MARK: - 导出为 Raycast Snippets 格式
+
+    /// 导出成 Raycast 官方 Snippets 的纯明文数组格式（`[{ "name", "text", "keyword"? }, ...]`）。
+    /// Raycast 格式没有可见性/加密概念，只导出公开（`.normal`）片段——软隐藏/加密隐藏的内容
+    /// 明文写进这种没有任何保护的格式里，等于绕过隐藏保存明文，不应该被这个导出路径带出去。
+    func exportRaycastSnippets() throws -> Data {
+        let snippets = try store.fetchActive().filter { $0.visibility == .normal }
+        let entries = snippets.map { RaycastSnippetEntry(name: $0.name, text: $0.plainContent ?? "", keyword: $0.keyword) }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try encoder.encode(entries)
+    }
+
+    // MARK: - 导入 Raycast Snippets
+
+    /// 导入 Raycast 官方导出的 Snippets JSON（纯明文数组，没有可见性/加密概念，
+    /// 全部落库为 normal 可见性）。
+    func importRaycastSnippets(from data: Data, conflictPolicy: ImportConflictPolicy) async -> ImportSummary {
+        var summary = ImportSummary()
+
+        guard let entries = try? JSONDecoder().decode([RaycastSnippetEntry].self, from: data) else {
+            summary.failed = 1
+            return summary
+        }
+
+        for entry in entries {
+            await importRaycastEntry(entry, conflictPolicy: conflictPolicy, summary: &summary)
+        }
+        return summary
+    }
+
+    private func importRaycastEntry(
+        _ entry: RaycastSnippetEntry,
+        conflictPolicy: ImportConflictPolicy,
+        summary: inout ImportSummary
+    ) async {
+        do {
+            let trimmedKeyword = entry.keyword?.trimmingCharacters(in: .whitespacesAndNewlines)
+            var snippet = Snippet(
+                name: entry.name,
+                keyword: (trimmedKeyword?.isEmpty ?? true) ? nil : trimmedKeyword,
+                plainContent: entry.text
+            )
+
+            if let keyword = snippet.keyword, let existing = try store.fetchByKeyword(keyword), existing.id != snippet.id {
+                switch conflictPolicy {
+                case .skip:
+                    summary.skipped += 1
+                    return
+                case .overwrite:
+                    snippet.id = existing.id
+                    _ = try store.update(snippet)
+                    summary.overwritten += 1
+                    return
+                case .duplicateAsNew:
                     snippet.keyword = "\(keyword)-imported"
                     _ = try store.create(snippet)
                     summary.duplicated += 1

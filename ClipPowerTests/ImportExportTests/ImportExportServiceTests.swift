@@ -201,4 +201,95 @@ final class ImportExportServiceTests: XCTestCase {
         XCTAssertEqual(active.count, 2)
         XCTAssertTrue(active.contains { $0.keyword == "dup-imported" })
     }
+
+    // MARK: - 导入 Raycast Snippets
+
+    private let raycastSampleJSON = """
+        [
+          { "name": "gitc", "text": "git checkout", "keyword": "gitc" },
+          { "name": "pwd-intra", "text": "Zaneyoujie@1314", "keyword": "pwdd" },
+          { "name": "long-name", "text": "huazhe.lei" }
+        ]
+        """.data(using: .utf8)!
+
+    func testImportRaycastSnippetsCreatesNormalVisibilitySnippets() async throws {
+        let store = try makeStore()
+        let service = ImportExportService(store: store, contentRevealer: FakeSnippetContentRevealing())
+
+        let summary = await service.importRaycastSnippets(from: raycastSampleJSON, conflictPolicy: .skip)
+
+        XCTAssertEqual(summary.imported, 3)
+        XCTAssertEqual(summary.failed, 0)
+
+        let all = try store.fetchActive()
+        XCTAssertEqual(all.count, 3)
+        XCTAssertTrue(all.allSatisfy { $0.visibility == .normal })
+
+        let gitc = all.first { $0.keyword == "gitc" }
+        XCTAssertEqual(gitc?.plainContent, "git checkout")
+
+        let noKeyword = all.first { $0.name == "long-name" }
+        XCTAssertNil(noKeyword?.keyword)
+        XCTAssertEqual(noKeyword?.plainContent, "huazhe.lei")
+    }
+
+    func testImportRaycastSnippetsConflictSkip() async throws {
+        let store = try makeStore()
+        _ = try store.create(Snippet(name: "本地版本", keyword: "gitc", plainContent: "local git checkout"))
+        let service = ImportExportService(store: store, contentRevealer: FakeSnippetContentRevealing())
+
+        let summary = await service.importRaycastSnippets(from: raycastSampleJSON, conflictPolicy: .skip)
+
+        XCTAssertEqual(summary.skipped, 1)
+        XCTAssertEqual(summary.imported, 2)
+
+        let gitc = try store.fetchByKeyword("gitc")
+        XCTAssertEqual(gitc?.plainContent, "local git checkout", "跳过策略下本地版本应该保留")
+    }
+
+    func testImportRaycastSnippetsInvalidJSONFails() async throws {
+        let store = try makeStore()
+        let service = ImportExportService(store: store, contentRevealer: FakeSnippetContentRevealing())
+
+        let summary = await service.importRaycastSnippets(from: Data("not json".utf8), conflictPolicy: .skip)
+
+        XCTAssertEqual(summary.failed, 1)
+        XCTAssertTrue(try store.fetchActive().isEmpty)
+    }
+
+    // MARK: - 导出为 Raycast Snippets 格式
+
+    func testExportRaycastSnippetsOnlyIncludesNormalVisibility() async throws {
+        let store = try makeStore()
+        let revealer = FakeSnippetContentRevealing()
+        _ = try store.create(Snippet(name: "公开片段", keyword: "gitc", plainContent: "git checkout"))
+        _ = try store.create(Snippet(name: "无触发词", plainContent: "huazhe.lei"))
+        _ = try store.create(Snippet(name: "软隐藏", keyword: "note", plainContent: "私密笔记", visibility: .softHidden))
+        var secret = try store.create(Snippet(name: "密钥", keyword: "key", plainContent: "sk-secret"))
+        secret = try await revealer.hide(secret)
+        _ = try store.update(secret)
+
+        let service = ImportExportService(store: store, contentRevealer: revealer)
+        let data = try service.exportRaycastSnippets()
+
+        let decoded = try JSONDecoder().decode([RaycastSnippetEntry].self, from: data)
+        XCTAssertEqual(decoded.count, 2, "软隐藏/加密隐藏的内容不应该被导出成没有任何保护的明文格式")
+        XCTAssertTrue(decoded.contains { $0.name == "公开片段" && $0.text == "git checkout" && $0.keyword == "gitc" })
+        XCTAssertTrue(decoded.contains { $0.name == "无触发词" && $0.keyword == nil })
+    }
+
+    func testExportRaycastSnippetsRoundTripsThroughImport() async throws {
+        let sourceStore = try makeStore()
+        _ = try sourceStore.create(Snippet(name: "公开片段", keyword: "gitc", plainContent: "git checkout"))
+        let exportService = ImportExportService(store: sourceStore, contentRevealer: FakeSnippetContentRevealing())
+        let data = try exportService.exportRaycastSnippets()
+
+        let destinationStore = try makeStore()
+        let importService = ImportExportService(store: destinationStore, contentRevealer: FakeSnippetContentRevealing())
+        let summary = await importService.importRaycastSnippets(from: data, conflictPolicy: .skip)
+
+        XCTAssertEqual(summary.imported, 1)
+        let imported = try destinationStore.fetchByKeyword("gitc")
+        XCTAssertEqual(imported?.plainContent, "git checkout")
+    }
 }
