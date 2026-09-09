@@ -53,19 +53,37 @@ jobs:
             CODE_SIGNING_ALLOWED=YES \
             clean build
 
-      - name: Zip the app
+      - name: Build a .dmg (Apple Silicon only — see release notes)
         run: |
-          cd build/Build/Products/Release
-          ditto -c -k --sequesterRsrc --keepParent ClipPower.app "ClipPower-${{ steps.version.outputs.version }}.zip"
-          mv "ClipPower-${{ steps.version.outputs.version }}.zip" "$GITHUB_WORKSPACE/"
+          version="${{ steps.version.outputs.version }}"
+          app="build/Build/Products/Release/ClipPower.app"
+          staging="dmg-staging"
+          dmg="ClipPower-${version}-arm64.dmg"
+
+          # 标准的"拖到 Applications"布局：一个只放 .app + Applications 软链接的
+          # 临时目录，做成的 dmg 挂载后就是 Finder 里常见的安装界面。
+          rm -rf "$staging"
+          mkdir "$staging"
+          cp -R "$app" "$staging/"
+          ln -s /Applications "$staging/Applications"
+
+          hdiutil create -volname "ClipPower" -srcfolder "$staging" -ov -format UDZO "$dmg"
+          mv "$dmg" "$GITHUB_WORKSPACE/"
+          echo "dmg_name=$dmg" >> "$GITHUB_OUTPUT"
+        id: dmg
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "ClipPower ${{ steps.version.outputs.version }}"
           generate_release_notes: true
-          files: ClipPower-${{ steps.version.outputs.version }}.zip
+          files: ${{ steps.dmg.outputs.dmg_name }}
           body: |
+            **Apple Silicon only** — Intel Macs are not supported.
+
             This build is ad-hoc signed, not notarized. On first launch, macOS will refuse
-            to open it — run `xattr -cr ClipPower.app` once before opening it normally.
+            to open it. Fix that once with:
+            ```sh
+            xattr -cr /Applications/ClipPower.app
+            ```
             See the README for setup and usage.

@@ -4,13 +4,14 @@ A native, Apple Silicon–only macOS menu bar utility that combines a Raycast‑
 
 ## Requirements
 
-- macOS 13.0 (Ventura) or later, Apple Silicon (arm64) only
+- macOS 13.0 (Ventura) or later
+- **Apple Silicon only** — there's no Intel build
 - Accessibility permission, granted on first launch (needed to paste for you and to power text expansion)
 
 ## Installation
 
-1. Download the latest build from the [Releases](../../releases) page and unzip it.
-2. Drag `ClipPower.app` to `/Applications`.
+1. Download the latest `.dmg` from the [Releases](../../releases) page and open it.
+2. Drag `ClipPower.app` into the `Applications` shortcut in the same window.
 3. The app isn't signed with a paid Apple Developer certificate, so Gatekeeper will initially refuse to open it ("ClipPower is damaged and can't be opened" / "unidentified developer"). Clear that flag once:
    ```sh
    xattr -cr /Applications/ClipPower.app
