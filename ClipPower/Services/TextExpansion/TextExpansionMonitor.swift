@@ -27,6 +27,9 @@ final class TextExpansionMonitor {
 
     func start() {
         stop()
+        if !PermissionsManager.isInputMonitoringGranted() {
+            print("[TextExpansionMonitor] ⚠️ Input Monitoring 未授权，全局按键监听收不到任何事件，keyword 自动展开会完全失效。去系统设置 > 隐私与安全性 > 输入监控里勾选 Clip Power。")
+        }
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             self?.handle(event)
         }

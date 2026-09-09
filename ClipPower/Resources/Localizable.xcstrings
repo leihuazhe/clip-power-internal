@@ -2174,6 +2174,150 @@
           }
         }
       }
+    },
+    "权限": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permissions"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "権限"
+          }
+        }
+      }
+    },
+    "辅助功能": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessibility"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセシビリティ"
+          }
+        }
+      }
+    },
+    "输入监控": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Monitoring"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力監視"
+          }
+        }
+      }
+    },
+    "已授权": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Granted"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "許可済み"
+          }
+        }
+      }
+    },
+    "未授权": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Granted"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未許可"
+          }
+        }
+      }
+    },
+    "请求授权": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request Access"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセスを要求"
+          }
+        }
+      }
+    },
+    "前往系统设置": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open System Settings"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "システム設定を開く"
+          }
+        }
+      }
+    },
+    "刷新权限状态": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh Permission Status"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "権限状態を更新"
+          }
+        }
+      }
+    },
+    "两项权限都需要授权，keyword 自动展开和模拟粘贴才能正常工作。系统授权弹窗里点允许后这里不会自动更新，请点上面的「刷新权限状态」；输入监控还可能需要重启 Clip Power 才会真正生效。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Both permissions are required for keyword auto-expansion and simulated pasting to work. Clicking Allow in the system prompt does not refresh this page automatically — use \"Refresh Permission Status\" above. Input Monitoring may also require restarting Clip Power to take effect."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーワードの自動展開とペーストのシミュレーションを機能させるには、両方の権限が必要です。システムのダイアログで許可しても、このページは自動更新されません。上の「権限状態を更新」を使ってください。入力監視は反映のために Clip Power の再起動が必要な場合もあります。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -24,6 +24,30 @@ struct SettingsView: View {
             }
 
             Section {
+                permissionRow(
+                    title: "辅助功能",
+                    granted: viewModel.isAccessibilityGranted,
+                    requestAction: viewModel.requestAccessibilityPermission,
+                    openSettingsAction: viewModel.openAccessibilitySettings
+                )
+                permissionRow(
+                    title: "输入监控",
+                    granted: viewModel.isInputMonitoringGranted,
+                    requestAction: viewModel.requestInputMonitoringPermission,
+                    openSettingsAction: viewModel.openInputMonitoringSettings
+                )
+                Button("刷新权限状态") {
+                    viewModel.refreshPermissionStatus()
+                }
+            } header: {
+                Label("权限", systemImage: "hand.raised.fill")
+            } footer: {
+                Text("两项权限都需要授权，keyword 自动展开和模拟粘贴才能正常工作。系统授权弹窗里点允许后这里不会自动更新，请点上面的「刷新权限状态」；输入监控还可能需要重启 Clip Power 才会真正生效。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 LabeledContent("打开 ClipPower") {
                     KeyboardShortcuts.Recorder(for: .toggleClipPowerPanel)
                 }
@@ -52,12 +76,39 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(maxWidth: 560)
-        .onAppear { viewModel.reload() }
+        .onAppear {
+            viewModel.reload()
+            viewModel.refreshPermissionStatus()
+        }
         .alert("语言已更改", isPresented: $viewModel.pendingLanguageRestart) {
             Button("现在重启") { viewModel.restartNow() }
             Button("稍后", role: .cancel) {}
         } message: {
             Text("需要重启 ClipPower 才能生效。")
+        }
+    }
+
+    @ViewBuilder
+    private func permissionRow(
+        title: LocalizedStringKey,
+        granted: Bool,
+        requestAction: @escaping () -> Void,
+        openSettingsAction: @escaping () -> Void
+    ) -> some View {
+        LabeledContent(title) {
+            HStack(spacing: 8) {
+                Label(
+                    granted ? "已授权" : "未授权",
+                    systemImage: granted ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+                )
+                .foregroundStyle(granted ? .green : .orange)
+                .font(.caption)
+
+                if !granted {
+                    Button("请求授权") { requestAction() }
+                    Button("前往系统设置") { openSettingsAction() }
+                }
+            }
         }
     }
 }

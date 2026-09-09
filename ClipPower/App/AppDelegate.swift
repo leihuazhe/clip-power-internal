@@ -29,8 +29,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupStatusItem()
         setupClipPowerPanel()
+        ensurePermissions()
         setupTextExpansion()
-        ensureAccessibilityPermission()
         openLibrary()
     }
 
@@ -147,9 +147,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    private func ensureAccessibilityPermission() {
+    private func ensurePermissions() {
         if !PermissionsManager.isAccessibilityGranted() {
             PermissionsManager.requestAccessibilityIfNeeded()
+        }
+        if !PermissionsManager.isInputMonitoringGranted() {
+            PermissionsManager.requestInputMonitoringIfNeeded()
         }
     }
 

@@ -142,6 +142,7 @@ private struct ClipboardHistoryRow: View {
         .background(isSelected ? Color.accentColor.opacity(0.2) : Color.clear)
         .cornerRadius(6)
         .padding(.horizontal, 6)
+        .padding(.vertical, 3)
     }
 
     @ViewBuilder
