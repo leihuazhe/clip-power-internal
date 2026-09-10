@@ -8,5 +8,6 @@ final class ClipPowerPanelController: FloatingPanel {
         onMoveUp = { viewModel.moveSelection(by: -1) }
         onTabKey = { viewModel.cycleTab() }
         onReturn = { viewModel.confirmSelection() }
+        onBecomeKey = { viewModel.panelDidBecomeKey() }
     }
 }

@@ -12,6 +12,14 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
     var onEscape: (() -> Void)?
     var onTabKey: (() -> Void)?
     var onReturn: (() -> Void)?
+    /// 窗口真正拿到键盘焦点时触发（而不是 `present()` 调用完那一刻，也不是 SwiftUI
+    /// `onAppear` 的下一个 runloop——这两个都只是"大概率已经 key 了"的猜测，`.nonactivatingPanel`
+    /// 不激活整个 App，窗口服务器把 key 状态真正批给这个窗口有额外的、不确定的延迟。
+    /// 有时候（尤其是从别的 App/别的 Space 呼出）这个延迟会跨过那个猜测的时间点，
+    /// SwiftUI 那边设 `FocusState` 时窗口其实还没 key，设置被静默丢弃，
+    /// 输入框始终没拿到第一响应者——之后打字进不了框，只会撞上系统提示音。
+    /// 这里才是"窗口已经 key 了"唯一确定为真的时刻，用它来兜底重新聚焦。
+    var onBecomeKey: (() -> Void)?
 
     private var keyMonitor: Any?
 
@@ -48,6 +56,10 @@ class FloatingPanel: NSPanel, NSWindowDelegate {
 
     func windowDidResignKey(_ notification: Notification) {
         onEscape?()
+    }
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        onBecomeKey?()
     }
 
     func centerOnActiveScreen() {

@@ -44,10 +44,15 @@ struct QuickPanelView: View {
         .onAppear {
             // 见 ClipboardHistoryView 里同样的注释：面板第一次显示时窗口还没真正变成
             // key window，onAppear 就跑完了，FocusState 设置不生效，延迟到下一个
-            // runloop 周期再设。
+            // runloop 周期再设。这只覆盖 Tab 切换等"窗口早已是 key"的稳定场景；
+            // 首次呼出那个真正的竞态由下面 `focusToken`（`FloatingPanel.onBecomeKey`
+            // 驱动）兜底。
             DispatchQueue.main.async {
                 isSearchFocused = true
             }
+        }
+        .onChange(of: viewModel.focusToken) { _ in
+            isSearchFocused = true
         }
     }
 

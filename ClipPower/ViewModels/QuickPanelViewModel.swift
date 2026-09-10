@@ -20,6 +20,9 @@ final class QuickPanelViewModel: ObservableObject {
     @Published var selectedIndex: Int = 0
     @Published private(set) var isRevealing = false
     @Published var errorMessage: String?
+    /// 由 `FloatingPanel.onBecomeKey` 驱动，见该属性的注释。视图 `.onChange` 监听这个
+    /// 计数器变化时重新设置 `FocusState`，作为 `onAppear` 延迟聚焦之外确定性的兜底。
+    @Published private(set) var focusToken = 0
 
     private let store: SnippetStore
     private let encryptionService: SnippetEncryptionService
@@ -89,6 +92,10 @@ final class QuickPanelViewModel: ObservableObject {
         selectedIndex = 0
         errorMessage = nil
         reload()
+    }
+
+    func requestFocus() {
+        focusToken += 1
     }
 
     private func paste(_ snippet: Snippet) async {

@@ -56,4 +56,13 @@ final class ClipPowerPanelViewModel: ObservableObject {
         snippetsViewModel.reset()
         clipboardHistoryViewModel.reset()
     }
+
+    /// 由 `FloatingPanel.onBecomeKey` 驱动：窗口真正拿到键盘焦点后，两个子 Tab 都
+    /// 收到一次“重新聚焦”的信号——当前不在前台的那个 Tab 视图并不存在（`Group`
+    /// 里用 `switch` 只挂载激活的那一个），调它的 `requestFocus()` 无副作用，
+    /// 不需要按 `activeTab` 分支处理。
+    func panelDidBecomeKey() {
+        snippetsViewModel.requestFocus()
+        clipboardHistoryViewModel.requestFocus()
+    }
 }

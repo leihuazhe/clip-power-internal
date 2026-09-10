@@ -20,6 +20,9 @@ final class ClipboardHistoryViewModel: ObservableObject {
     /// 所以缓存是等价的，按键路径上的成本从 O(n × 日期计算) 降到 0。
     @Published private(set) var groupedResults: [RowSection<ClipboardHistoryItem>] = []
     @Published var selectedIndex: Int = 0
+    /// 见 `QuickPanelViewModel.focusToken` 的注释：同一套 `FloatingPanel.onBecomeKey`
+    /// 确定性兜底聚焦机制。
+    @Published private(set) var focusToken = 0
 
     private let store: ClipboardHistoryStore
 
@@ -82,5 +85,9 @@ final class ClipboardHistoryViewModel: ObservableObject {
         searchText = ""
         selectedIndex = 0
         reload()
+    }
+
+    func requestFocus() {
+        focusToken += 1
     }
 }

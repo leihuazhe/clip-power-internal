@@ -64,13 +64,18 @@ struct ClipboardHistoryView: View {
             // onAppear 就已经跑完了——这时设置 FocusState 不会生效（回车摸不到
             // onSubmit，方向键还能用是因为那是在窗口级别监听的）。延迟到下一个
             // runloop 周期再设，等窗口真正拿到键盘焦点。第二次之后窗口已经"热"了，
-            // 没有这个问题，但延迟设置无副作用，就不用分场景处理了。
+            // 没有这个问题，但延迟设置无副作用，就不用分场景处理了。这个延迟只是
+            // "大概率够了"的猜测，真正确定窗口已经 key 的那次兜底在下面的
+            // `focusToken`（由 `FloatingPanel.onBecomeKey` 驱动）。
             DispatchQueue.main.async {
                 isSearchFocused = true
             }
             // 每次浮层重新呼出都回到未确认状态，避免上次点了"清空"没确认就关掉面板，
             // 下次一打开还停在"确认清空？"上、一不小心就点掉了。
             isConfirmingClear = false
+        }
+        .onChange(of: viewModel.focusToken) { _ in
+            isSearchFocused = true
         }
     }
 

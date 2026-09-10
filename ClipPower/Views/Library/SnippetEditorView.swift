@@ -53,31 +53,38 @@ struct SnippetEditorView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text(title).font(.headline)
 
-            Form {
-                TextField("标题", text: $name)
-                TextField("触发词（选填）", text: $keyword)
-                TextField("标签，用逗号分隔（选填）", text: $tagsText)
+            // 有意不用 `Form`：本地化成英文/日文后，"标签，用逗号分隔（选填）"这类标签
+            // 会变得很长，Form 在 macOS 上左标签右控件的两栏布局不会把标签换行，
+            // 而是把整行的期望宽度撑大，连带把 sheet 窗口撑到远超下面 `.frame` 设定的
+            // 宽高（标签甚至会溢出到窗口左边界外）。改成标签在上、控件在下的纵向布局后，
+            // 每一行的宽度只取决于控件本身，不再随本地化字符串长度联动撑爆窗口。
+            labeledField("标题", text: $name)
+            labeledField("触发词（选填）", text: $keyword)
+            labeledField("标签，用逗号分隔（选填）", text: $tagsText)
 
+            VStack(alignment: .leading, spacing: 4) {
+                Text("可见性").font(.caption).foregroundStyle(.secondary)
                 Picker("可见性", selection: $visibility) {
                     ForEach(SnippetVisibility.allCases, id: \.self) { option in
                         Text(option.displayName).tag(option)
                     }
                 }
+                .labelsHidden()
                 .pickerStyle(.segmented)
+            }
 
-                if visibility == .encryptedHidden {
-                    Text("保存时会要求 Touch ID / 密码验证，内容将加密存储")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+            if visibility == .encryptedHidden {
+                Text("保存时会要求 Touch ID / 密码验证，内容将加密存储")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("内容").font(.caption).foregroundStyle(.secondary)
-                    TextEditor(text: $content)
-                        .font(.body.monospaced())
-                        .frame(minHeight: 160)
-                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.3)))
-                }
+            VStack(alignment: .leading, spacing: 4) {
+                Text("内容").font(.caption).foregroundStyle(.secondary)
+                TextEditor(text: $content)
+                    .font(.body.monospaced())
+                    .frame(minHeight: 140)
+                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.secondary.opacity(0.3)))
             }
 
             HStack {
@@ -93,7 +100,15 @@ struct SnippetEditorView: View {
             }
         }
         .padding(20)
-        .frame(width: 480, height: 460)
+        .frame(width: 480, height: 540)
+    }
+
+    private func labeledField(_ label: LocalizedStringKey, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label).font(.caption).foregroundStyle(.secondary)
+            TextField("", text: text)
+                .textFieldStyle(.roundedBorder)
+        }
     }
 
     private func save() {
