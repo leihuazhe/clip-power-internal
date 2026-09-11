@@ -2318,6 +2318,214 @@
           }
         }
       }
+    },
+    "移动全屏应用到下一个屏幕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Fullscreen App to Next Screen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全画面表示のアプリを次のディスプレイに移動"
+          }
+        }
+      }
+    },
+    "面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。「移动全屏应用到下一个屏幕」只对系统原生全屏窗口有效，切换过程中屏幕会有 1-2 秒动画，需要辅助功能权限。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While the panel is open, press ⇥ to switch between the “Snippets” and “Clipboard History” tabs. “Move Fullscreen App to Next Screen” only works on native fullscreen windows, takes 1-2 seconds of system animation, and requires Accessibility permission."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネルが開いている間に⇥を押すと、「スニペット」と「クリップボード履歴」のタブを切り替えられます。「全画面表示のアプリを次のディスプレイに移動」はシステム標準の全画面ウインドウにのみ対応し、切り替え中は1〜2秒のアニメーションが入り、アクセシビリティ権限が必要です。"
+          }
+        }
+      }
+    },
+    "移动全屏应用到左侧屏幕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Fullscreen App to Screen on the Left"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全画面表示のアプリを左のディスプレイに移動"
+          }
+        }
+      }
+    },
+    "移动全屏应用到右侧屏幕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Fullscreen App to Screen on the Right"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全画面表示のアプリを右のディスプレイに移動"
+          }
+        }
+      }
+    },
+    "移动全屏应用到上方屏幕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Fullscreen App to Screen Above"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全画面表示のアプリを上のディスプレイに移動"
+          }
+        }
+      }
+    },
+    "移动全屏应用到下方屏幕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Fullscreen App to Screen Below"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全画面表示のアプリを下のディスプレイに移動"
+          }
+        }
+      }
+    },
+    "面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。全屏窗口跨屏移动只对系统原生全屏窗口有效，切换过程中屏幕会有 1-2 秒动画，需要辅助功能权限；方向快捷键按屏幕物理摆放位置找最近的那块屏幕，适合 L 形/多屏布局，对应方向没有屏幕时不会有反应。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While the panel is open, press ⇥ to switch between the “Snippets” and “Clipboard History” tabs. Moving a fullscreen window across displays only works on native fullscreen windows, takes 1-2 seconds of system animation, and requires Accessibility permission. The directional shortcuts pick the nearest screen in that physical direction — handy for L-shaped or grid layouts — and do nothing if there's no screen that way."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネルが開いている間に⇥を押すと、「スニペット」と「クリップボード履歴」のタブを切り替えられます。全画面ウインドウをディスプレイ間で移動する機能はシステム標準の全画面ウインドウにのみ対応し、切り替え中は1〜2秒のアニメーションが入り、アクセシビリティ権限が必要です。方向キーのショートカットは物理的な配置でその方向にある最も近いディスプレイを選びます（L字型や格子状の配置に便利）。その方向にディスプレイがない場合は何も起きません。"
+          }
+        }
+      }
+    },
+    "移动全屏应用到上一个屏幕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Fullscreen App to Previous Screen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全画面表示のアプリを前のディスプレイに移動"
+          }
+        }
+      }
+    },
+    "面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。「移动全屏应用到上一个/下一个屏幕」按屏幕从左到右的物理顺序循环切换，只对系统原生全屏窗口有效，切换过程中屏幕会有 1-2 秒动画，需要辅助功能权限；只有 1 块屏幕时不会有反应。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While the panel is open, press ⇥ to switch between the “Snippets” and “Clipboard History” tabs. “Move Fullscreen App to Previous/Next Screen” cycles through your displays in left-to-right physical order. It only works on native fullscreen windows, takes 1-2 seconds of system animation, and requires Accessibility permission; it does nothing with just one screen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネルが開いている間に⇥を押すと、「スニペット」と「クリップボード履歴」のタブを切り替えられます。「全画面表示のアプリを前の/次のディスプレイに移動」は、ディスプレイを左から右への物理的な並び順で循環切り替えします。システム標準の全画面ウインドウにのみ対応し、切り替え中は1〜2秒のアニメーションが入り、アクセシビリティ権限が必要です。ディスプレイが1台だけの場合は何も起きません。"
+          }
+        }
+      }
+    },
+    "移动当前窗口到下一个屏幕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Current Window to Next Screen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在のウインドウを次のディスプレイに移動"
+          }
+        }
+      }
+    },
+    "移动当前窗口到上一个屏幕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move Current Window to Previous Screen"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在のウインドウを前のディスプレイに移動"
+          }
+        }
+      }
+    },
+    "面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。「移动当前窗口到上一个/下一个屏幕」按屏幕从左到右的物理顺序循环切换：全屏窗口会退出全屏、挪过去再重新全屏（1-2 秒动画），非全屏窗口直接原样搬过去；都需要辅助功能权限，只有 1 块屏幕时不会有反应。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While the panel is open, press ⇥ to switch between the “Snippets” and “Clipboard History” tabs. “Move Current Window to Previous/Next Screen” cycles through your displays in left-to-right physical order: a fullscreen window exits fullscreen, moves, then re-enters fullscreen (1-2 seconds of animation), while a non-fullscreen window is moved directly. Both require Accessibility permission and do nothing with just one screen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネルが開いている間に⇥を押すと、「スニペット」と「クリップボード履歴」のタブを切り替えられます。「現在のウインドウを前の/次のディスプレイに移動」は、ディスプレイを左から右への物理的な並び順で循環切り替えします。全画面ウインドウの場合は全画面を解除して移動し、再度全画面にします（1〜2秒のアニメーション）。全画面でないウインドウはそのまま直接移動します。どちらもアクセシビリティ権限が必要で、ディスプレイが1台だけの場合は何も起きません。"
+          }
+        }
+      }
+    },
+    "面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。「移动当前窗口到上一个/下一个屏幕」按屏幕从左到右的物理顺序循环切换：全屏窗口会退出全屏、挪过去再重新全屏（1-2 秒动画，部分应用重新进入全屏可能不生效，跟具体应用有关），非全屏窗口直接原样搬过去；都需要辅助功能权限，只有 1 块屏幕时不会有反应。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While the panel is open, press ⇥ to switch between the “Snippets” and “Clipboard History” tabs. “Move Current Window to Previous/Next Screen” cycles through your displays in left-to-right physical order: a fullscreen window exits fullscreen, moves, then re-enters fullscreen (1-2 seconds of animation; re-entering fullscreen doesn't always work, depending on the app), while a non-fullscreen window is moved directly. Both require Accessibility permission and do nothing with just one screen."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パネルが開いている間に⇥を押すと、「スニペット」と「クリップボード履歴」のタブを切り替えられます。「現在のウインドウを前の/次のディスプレイに移動」は、ディスプレイを左から右への物理的な並び順で循環切り替えします。全画面ウインドウの場合は全画面を解除して移動し、再度全画面にします（1〜2秒のアニメーション。アプリによっては再度の全画面化がうまくいかないことがあります）。全画面でないウインドウはそのまま直接移動します。どちらもアクセシビリティ権限が必要で、ディスプレイが1台だけの場合は何も起きません。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

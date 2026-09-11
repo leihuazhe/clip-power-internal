@@ -112,6 +112,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         GlobalHotkeyManager.shared.register(.toggleClipboardHistoryPanel) { [weak self] in
             self?.togglePanel(defaultTab: .clipboardHistory)
         }
+        GlobalHotkeyManager.shared.register(.moveFrontmostWindowToNextScreen) {
+            FullscreenWindowMover.moveFrontmostWindowToNextScreen()
+        }
+        GlobalHotkeyManager.shared.register(.moveFrontmostWindowToPreviousScreen) {
+            FullscreenWindowMover.moveFrontmostWindowToPreviousScreen()
+        }
     }
 
     private func setupTextExpansion() {

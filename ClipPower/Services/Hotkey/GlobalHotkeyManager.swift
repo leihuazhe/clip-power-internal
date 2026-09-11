@@ -7,6 +7,13 @@ extension KeyboardShortcuts.Name {
     static let toggleSnippetsPanel = Self("toggleSnippetsPanel")
     /// 直接打开合并面板并定位到「剪贴板历史」Tab，默认 ⌘⇧V。
     static let toggleClipboardHistoryPanel = Self("toggleClipboardHistoryPanel", default: .init(.v, modifiers: [.command, .shift]))
+    /// 把前台窗口在按物理位置排好序的屏幕环形列表里往后/往前挪一格；全屏窗口会退出全屏再
+    /// 重新全屏到目标屏幕，非全屏窗口直接原样搬过去。
+    /// 默认 ⌃⌥⌘+方向键：⌃+方向键被系统占用（切全屏 Space/Mission Control），
+    /// ⌘⌥+方向键是 Safari/Chrome 切标签页的默认键，两个都要避开；
+    /// ⌃⌥⌘+方向键正好是 Rectangle 给"移动到下一个/上一个显示器"用的默认键位，撞车概率最低。
+    static let moveFrontmostWindowToNextScreen = Self("moveFrontmostWindowToNextScreen", default: .init(.rightArrow, modifiers: [.control, .option, .command]))
+    static let moveFrontmostWindowToPreviousScreen = Self("moveFrontmostWindowToPreviousScreen", default: .init(.leftArrow, modifiers: [.control, .option, .command]))
 }
 
 /// 封装 KeyboardShortcuts 包（内部基于 Carbon HotKey API），注册全局热键。

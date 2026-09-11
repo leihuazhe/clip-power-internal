@@ -57,10 +57,16 @@ struct SettingsView: View {
                 LabeledContent("直接打开「剪贴板历史」") {
                     KeyboardShortcuts.Recorder(for: .toggleClipboardHistoryPanel)
                 }
+                LabeledContent("移动当前窗口到下一个屏幕") {
+                    KeyboardShortcuts.Recorder(for: .moveFrontmostWindowToNextScreen)
+                }
+                LabeledContent("移动当前窗口到上一个屏幕") {
+                    KeyboardShortcuts.Recorder(for: .moveFrontmostWindowToPreviousScreen)
+                }
             } header: {
                 Label("全局快捷键", systemImage: "keyboard")
             } footer: {
-                Text("面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。")
+                Text("面板打开时按 ⇥ 可以在「片段」和「剪贴板历史」两个标签之间切换。「移动当前窗口到上一个/下一个屏幕」按屏幕从左到右的物理顺序循环切换：全屏窗口会退出全屏、挪过去再重新全屏（1-2 秒动画，部分应用重新进入全屏可能不生效，跟具体应用有关），非全屏窗口直接原样搬过去；都需要辅助功能权限，只有 1 块屏幕时不会有反应。")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
