@@ -4,4 +4,5 @@ import Foundation
 enum AppEnvironment {
     static let snippetStore = SnippetStore(dbQueue: DatabaseManager.shared.dbQueue)
     static let clipboardHistoryStore = ClipboardHistoryStore(dbQueue: DatabaseManager.shared.dbQueue)
+    static let inputMethodBindingStore = InputMethodBindingStore(dbQueue: DatabaseManager.shared.dbQueue)
 }

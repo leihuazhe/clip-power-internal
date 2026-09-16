@@ -7,7 +7,11 @@ import SwiftUI
 /// 一个 NSWindowController，关闭时只是隐藏（`isReleasedWhenClosed = false`），
 /// 下次调用 `showWindow` 还能重新拿回同一个窗口。
 final class LibraryWindowController: NSWindowController {
-    convenience init(store: SnippetStore, clipboardHistoryStore: ClipboardHistoryStore) {
+    convenience init(
+        store: SnippetStore,
+        clipboardHistoryStore: ClipboardHistoryStore,
+        inputMethodBindingStore: InputMethodBindingStore
+    ) {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 560),
             styleMask: [.titled, .closable, .resizable, .miniaturizable, .fullSizeContentView],
@@ -18,7 +22,11 @@ final class LibraryWindowController: NSWindowController {
         window.center()
         window.isReleasedWhenClosed = false
         window.contentView = NSHostingView(
-            rootView: LibraryView(store: store, clipboardHistoryStore: clipboardHistoryStore)
+            rootView: LibraryView(
+                store: store,
+                clipboardHistoryStore: clipboardHistoryStore,
+                inputMethodBindingStore: inputMethodBindingStore
+            )
         )
 
         self.init(window: window)

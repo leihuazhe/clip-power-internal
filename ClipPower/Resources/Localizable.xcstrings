@@ -2318,6 +2318,155 @@
           }
         }
       }
+    },
+    "输入法切换快捷键": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Input Source Shortcuts"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソースの切り替えショートカット"
+          }
+        }
+      }
+    },
+    "为常用输入法设置专属快捷键，按下后直接切换到该输入法。只能从系统「键盘」设置里已启用的输入法中选择。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assign a dedicated shortcut to each input source to switch directly to it. Only input sources already enabled in System Settings > Keyboard can be added."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "よく使う入力ソースに専用のショートカットを割り当てると、押すだけで直接切り替えられます。システム設定の「キーボード」で有効になっている入力ソースのみ追加できます。"
+          }
+        }
+      }
+    },
+    "添加输入法": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Input Source"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソースを追加"
+          }
+        }
+      }
+    },
+    "选择输入法": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an Input Source"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソースを選択"
+          }
+        }
+      }
+    },
+    "没有更多可添加的输入法了，请先在系统设置里启用更多输入法。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No more input sources to add. Enable more input sources in System Settings first."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "追加できる入力ソースがありません。まずシステム設定でほかの入力ソースを有効にしてください。"
+          }
+        }
+      }
+    },
+    "loadInputMethodBindingsFailedFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to load input source shortcuts: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソースショートカットの読み込みに失敗しました：%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载输入法快捷键失败：%@"
+          }
+        }
+      }
+    },
+    "saveInputMethodBindingFailedFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to save input source shortcut: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソースショートカットの保存に失敗しました：%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存输入法快捷键失败：%@"
+          }
+        }
+      }
+    },
+    "deleteInputMethodBindingFailedFormat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to delete input source shortcut: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "入力ソースショートカットの削除に失敗しました：%@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除输入法快捷键失败：%@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

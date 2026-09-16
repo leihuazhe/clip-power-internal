@@ -49,6 +49,14 @@ Pasting a soft‑hidden or encrypted‑hidden snippet types it directly instead 
 
 You can also trigger a snippet by typing its **keyword** anywhere on the system: the keyword you typed is deleted and replaced with the snippet's content, Espanso‑style. Encrypted‑hidden snippets don't participate in this, since expanding one shouldn't skip the Touch ID prompt.
 
+### Input source shortcuts
+
+Bind a global shortcut to any input source (keyboard layout or input method) you've already enabled in **System Settings → Keyboard → Input Sources**, from **Settings → Input Source Shortcuts**. Pressing that shortcut switches straight to that input source, instead of cycling through ⌘Space until you land on the one you want.
+
+- Click **Add Input Source** and pick one from the sources already enabled on your Mac — ClipPower only lets you bind sources the system already knows about, it doesn't manage which ones are installed.
+- Record any unused shortcut for it.
+- Remove a binding with the ✕ button; its shortcut is freed immediately.
+
 ### Clipboard History
 
 Every piece of text, image, and file you copy is recorded automatically (up to 200 items, searchable). Copying the same content again — or pasting an older entry back out of history — moves that entry to the top instead of creating a duplicate.
@@ -65,6 +73,7 @@ Keyword conflicts on import can be skipped, overwritten, or kept as a duplicate 
 ### Settings
 
 - Rebind any of the three global hotkeys.
+- Add or remove per-input-source switching shortcuts (see [Input source shortcuts](#input-source-shortcuts) above).
 - Switch the app language — English, 简体中文, or 日本語. ClipPower defaults to English regardless of your system language; changing it prompts a restart.
 - View and clear your clipboard history.
 

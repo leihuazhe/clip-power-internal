@@ -190,6 +190,19 @@ final class DatabaseManager: Sendable {
             try db.execute(sql: "UPDATE clipboardHistoryItem SET fileURLs = '[]' WHERE fileURLs IS NULL")
         }
 
+        migrator.registerMigration("v5_createInputMethodBindingSchema") { db in
+            try db.execute(sql: """
+                CREATE TABLE inputMethodBinding (
+                    id TEXT PRIMARY KEY NOT NULL,
+                    inputSourceID TEXT NOT NULL,
+                    displayName TEXT NOT NULL,
+                    sortOrder INTEGER NOT NULL DEFAULT 0,
+                    createdAt REAL NOT NULL,
+                    updatedAt REAL NOT NULL
+                )
+                """)
+        }
+
         return migrator
     }
 }

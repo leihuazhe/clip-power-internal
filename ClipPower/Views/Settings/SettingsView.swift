@@ -3,6 +3,9 @@ import KeyboardShortcuts
 
 struct SettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
+    @ObservedObject var inputMethodHotkeysViewModel: InputMethodHotkeysViewModel
+
+    @State private var isShowingAddInputMethodSheet = false
 
     var body: some View {
         Form {
@@ -66,6 +69,38 @@ struct SettingsView: View {
             }
 
             Section {
+                ForEach(inputMethodHotkeysViewModel.bindings) { binding in
+                    HStack {
+                        Image(systemName: "globe")
+                            .foregroundStyle(.secondary)
+                        Text(binding.displayName)
+                        Spacer()
+                        KeyboardShortcuts.Recorder(for: binding.shortcutName)
+                        Button {
+                            inputMethodHotkeysViewModel.removeBinding(binding)
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("删除")
+                    }
+                }
+                Button {
+                    inputMethodHotkeysViewModel.reloadAvailableInputSources()
+                    isShowingAddInputMethodSheet = true
+                } label: {
+                    Label("添加输入法", systemImage: "plus")
+                }
+            } header: {
+                Label("输入法切换快捷键", systemImage: "keyboard.badge.ellipsis")
+            } footer: {
+                Text("为常用输入法设置专属快捷键，按下后直接切换到该输入法。只能从系统「键盘」设置里已启用的输入法中选择。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
                 LabeledContent("已记录条数", value: "\(viewModel.clipboardHistoryCount)")
                 Button("清空剪贴板历史", role: .destructive) {
                     viewModel.clearClipboardHistory()
@@ -85,6 +120,18 @@ struct SettingsView: View {
             Button("稍后", role: .cancel) {}
         } message: {
             Text("需要重启 ClipPower 才能生效。")
+        }
+        .sheet(isPresented: $isShowingAddInputMethodSheet) {
+            AddInputMethodView(
+                availableInputSources: inputMethodHotkeysViewModel.availableInputSources,
+                onSelect: { inputSource in
+                    inputMethodHotkeysViewModel.addBinding(inputSource)
+                    isShowingAddInputMethodSheet = false
+                },
+                onCancel: {
+                    isShowingAddInputMethodSheet = false
+                }
+            )
         }
     }
 

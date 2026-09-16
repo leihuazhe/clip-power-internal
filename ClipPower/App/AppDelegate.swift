@@ -31,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupClipPowerPanel()
         ensurePermissions()
         setupTextExpansion()
+        InputMethodHotkeyCoordinator.shared.start(store: AppEnvironment.inputMethodBindingStore)
         openLibrary()
     }
 
@@ -183,7 +184,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if libraryWindowController == nil {
             libraryWindowController = LibraryWindowController(
                 store: AppEnvironment.snippetStore,
-                clipboardHistoryStore: AppEnvironment.clipboardHistoryStore
+                clipboardHistoryStore: AppEnvironment.clipboardHistoryStore,
+                inputMethodBindingStore: AppEnvironment.inputMethodBindingStore
             )
         }
         libraryWindowController?.show()

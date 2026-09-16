@@ -5,6 +5,7 @@ struct LibraryView: View {
     @StateObject private var trashViewModel: TrashViewModel
     @StateObject private var importExportViewModel: ImportExportViewModel
     @StateObject private var settingsViewModel: SettingsViewModel
+    @StateObject private var inputMethodHotkeysViewModel: InputMethodHotkeysViewModel
 
     private enum SidebarItem: Hashable {
         case all
@@ -34,7 +35,11 @@ struct LibraryView: View {
     @State private var editorTarget: EditorTarget?
     @State private var isShowingImportExport = false
 
-    init(store: SnippetStore, clipboardHistoryStore: ClipboardHistoryStore) {
+    init(
+        store: SnippetStore,
+        clipboardHistoryStore: ClipboardHistoryStore,
+        inputMethodBindingStore: InputMethodBindingStore
+    ) {
         let library = LibraryViewModel(store: store)
         _libraryViewModel = StateObject(wrappedValue: library)
         _trashViewModel = StateObject(wrappedValue: TrashViewModel(store: store, onChange: { [weak library] in
@@ -44,6 +49,7 @@ struct LibraryView: View {
             library?.reload()
         }))
         _settingsViewModel = StateObject(wrappedValue: SettingsViewModel(clipboardStore: clipboardHistoryStore))
+        _inputMethodHotkeysViewModel = StateObject(wrappedValue: InputMethodHotkeysViewModel(store: inputMethodBindingStore))
     }
 
     var body: some View {
@@ -64,7 +70,7 @@ struct LibraryView: View {
             case .trash:
                 TrashView(viewModel: trashViewModel)
             case .settings:
-                SettingsView(viewModel: settingsViewModel)
+                SettingsView(viewModel: settingsViewModel, inputMethodHotkeysViewModel: inputMethodHotkeysViewModel)
             case .importExport:
                 ImportExportView(viewModel: importExportViewModel, showsCloseButton: false)
             default:
